@@ -16,10 +16,21 @@
   --tool: #a7b6ff;
   --mint-hover: #6ee7b0;
   --focus: rgba(111, 198, 255, 0.35);
+  --focus-strong: rgba(111, 198, 255, 0.4);
   --mint-focus: rgba(61, 220, 151, 0.4);
   --mint-border: rgba(61, 220, 151, 0.26);
+  --mint-strip: rgba(61, 220, 151, 0.35);
   --mint-bg: rgba(61, 220, 151, 0.06);
   --mint-ink: #04211a;
+  --att-glow: rgba(255, 192, 67, 0.16);
+  --att-border: rgba(255, 192, 67, 0.28);
+  --att-bg: rgba(255, 192, 67, 0.07);
+  --att-chip: rgba(255, 192, 67, 0.1);
+  --att-ink: #1c1403;
+  --att-hover: #ffd166;
+  --red-glow: rgba(255, 107, 107, 0.14);
+  --red-bg: rgba(255, 107, 107, 0.12);
+  --pin-on: var(--att);
 }
 
 /* ---------- themes (tray → Theme) ---------- */
@@ -41,13 +52,21 @@ body[data-theme="midnight"] {
   --tool: #8fb0ff;
   --mint-hover: #5cf0bd;
   --focus: rgba(77, 159, 255, 0.42);
+  --focus-strong: rgba(77, 159, 255, 0.48);
   --mint-focus: rgba(47, 224, 160, 0.42);
   --mint-border: rgba(47, 224, 160, 0.3);
+  --mint-strip: rgba(47, 224, 160, 0.38);
   --mint-bg: rgba(47, 224, 160, 0.07);
   --mint-ink: #032219;
+  --att-glow: rgba(255, 189, 46, 0.18);
+  --att-border: rgba(255, 189, 46, 0.3);
+  --att-bg: rgba(255, 189, 46, 0.08);
+  --att-chip: rgba(255, 189, 46, 0.1);
+  --att-ink: #1a1200;
+  --att-hover: #ffd166;
+  --red-glow: rgba(255, 77, 125, 0.16);
+  --red-bg: rgba(255, 77, 125, 0.14);
 }
-
-body[data-theme="mono"] .sdot.err { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12); }
 
 body[data-theme="mono"] {
   --busy: #d5d9e0;
@@ -67,10 +86,22 @@ body[data-theme="mono"] {
   --tool: #b8bec8;
   --mint-hover: #d5dae2;
   --focus: rgba(255, 255, 255, 0.28);
+  --focus-strong: rgba(255, 255, 255, 0.32);
   --mint-focus: rgba(255, 255, 255, 0.28);
   --mint-border: rgba(255, 255, 255, 0.16);
+  --mint-strip: rgba(255, 255, 255, 0.2);
   --mint-bg: rgba(255, 255, 255, 0.05);
   --mint-ink: #101014;
+  /* mono keeps colour only on the amber alert */
+  --att-glow: rgba(255, 192, 67, 0.16);
+  --att-border: rgba(255, 192, 67, 0.3);
+  --att-bg: rgba(255, 192, 67, 0.07);
+  --att-chip: rgba(255, 255, 255, 0.08);
+  --att-ink: #1c1403;
+  --att-hover: #ffd166;
+  --red-glow: rgba(255, 255, 255, 0.12);
+  --red-bg: rgba(255, 255, 255, 0.08);
+  --pin-on: #e6e8ec;
 }
 
 * { box-sizing: border-box; -webkit-app-region: no-drag; user-select: none; }
@@ -135,9 +166,9 @@ body.atop #panel { border-radius: 0 0 18px 18px; border-top-color: transparent; 
 }
 .sdot.busy { background: var(--busy); animation: pulse 1.5s ease-in-out infinite; }
 .sdot.retry { background: var(--busy); animation: pulse 0.7s ease-in-out infinite; }
-.sdot.att { background: var(--att); box-shadow: 0 0 0 3px rgba(255, 192, 67, 0.16); }
+.sdot.att { background: var(--att); box-shadow: 0 0 0 3px var(--att-glow); }
 .sdot.done { background: var(--mint); }
-.sdot.err { background: var(--red); box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.14); }
+.sdot.err { background: var(--red); box-shadow: 0 0 0 3px var(--red-glow); }
 .sdot.off { background: rgba(255, 255, 255, 0.22); }
 
 @keyframes pulse {
@@ -195,7 +226,7 @@ body.atop #panel { border-radius: 0 0 18px 18px; border-top-color: transparent; 
 #mute.off .mx { display: none; }
 #mute.off .mo { display: block; }
 #pin:hover, #mute:hover, #q:hover { color: var(--txt); background: rgba(255, 255, 255, 0.07); opacity: 1; }
-#pin.on { color: var(--att); background: rgba(255, 192, 67, 0.1); opacity: 1; }
+#pin.on { color: var(--pin-on); background: var(--att-chip); opacity: 1; }
 #mute.off { opacity: 0.3; }
 
 /* ---------- filter ---------- */
@@ -220,8 +251,8 @@ body.atop #panel { border-radius: 0 0 18px 18px; border-top-color: transparent; 
 
 /* ---------- permission cards ---------- */
 .pcard {
-  border: 1px solid rgba(255, 192, 67, 0.28);
-  background: rgba(255, 192, 67, 0.07);
+  border: 1px solid var(--att-border);
+  background: var(--att-bg);
   border-radius: 12px;
   padding: 10px 12px;
   margin-bottom: 7px;
@@ -258,12 +289,12 @@ body.atop #panel { border-radius: 0 0 18px 18px; border-top-color: transparent; 
   white-space: nowrap;
   flex: none;
 }
-.pb .b1 { background: var(--att); color: #1c1403; }
-.pb .b1:hover { background: #ffd166; }
+.pb .b1 { background: var(--att); color: var(--att-ink); }
+.pb .b1:hover { background: var(--att-hover); }
 .pb .b2 { background: rgba(255, 255, 255, 0.07); color: var(--txt); }
 .pb .b2:hover { background: rgba(255, 255, 255, 0.12); }
 .pb .b3 { color: var(--red); }
-.pb .b3:hover { background: rgba(255, 107, 107, 0.1); }
+.pb .b3:hover { background: var(--red-bg); }
 .pb button:disabled { opacity: 0.4; cursor: default; }
 
 /* ---------- session rows ---------- */
@@ -340,7 +371,7 @@ body.atop #panel { border-radius: 0 0 18px 18px; border-top-color: transparent; 
   border-radius: 5px;
 }
 .l2 .cost + .ibtn { margin-left: 0; }
-.ibtn:hover { color: var(--red); background: rgba(255, 107, 107, 0.12); }
+.ibtn:hover { color: var(--red); background: var(--red-bg); }
 
 .lbar { display: flex; align-items: center; gap: 7px; min-width: 0; }
 .spct {
@@ -412,7 +443,7 @@ body.atop #panel { border-radius: 0 0 18px 18px; border-top-color: transparent; 
 .ft > :not(.fx) { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .ft .ic { color: var(--mint); flex: none; }
 .ft .fx { margin-left: auto; flex: none; color: var(--dim); font-size: 10.5px; padding: 2px 5px; border-radius: 5px; }
-.ft .fx:hover { color: var(--red); background: rgba(255, 107, 107, 0.12); }
+.ft .fx:hover { color: var(--red); background: var(--red-bg); }
 .fbody { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .frow { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .frow > label, .frow > .flabel { font-size: 10.5px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -447,7 +478,7 @@ body.atop #panel { border-radius: 0 0 18px 18px; border-top-color: transparent; 
 .fstrip {
   font-size: 11px;
   color: var(--mint);
-  border: 1px dashed var(--mint-border);
+  border: 1px dashed var(--mint-strip);
   border-radius: 9px;
   padding: 6px 10px;
   margin-bottom: 6px;
@@ -471,7 +502,7 @@ body.atop #panel { border-radius: 0 0 18px 18px; border-top-color: transparent; 
   user-select: text;
 }
 #in::placeholder { color: var(--dim2); }
-#in:focus { border-color: var(--focus); background: rgba(255, 255, 255, 0.07); }
+#in:focus { border-color: var(--focus-strong); background: rgba(255, 255, 255, 0.07); }
 
 #frame.ex #panel::-webkit-scrollbar { width: 7px; }
 #frame.ex #panel::-webkit-scrollbar-track { background: transparent; }
