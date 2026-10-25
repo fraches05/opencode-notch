@@ -13,5 +13,8 @@ contextBridge.exposeInMainWorld("notch", {
   formReply: (sessionID, formID, answer) => ipcRenderer.invoke("form:reply", { sessionID, formID, answer }),
   formCancel: (sessionID, formID) => ipcRenderer.invoke("form:cancel", { sessionID, formID }),
   openExternal: (url) => ipcRenderer.send("open:external", url),
+  notify: (v) => ipcRenderer.send("ui:notify", v),
+  checkUpdate: () => ipcRenderer.invoke("update:check"),
+  dismissUpdate: (v) => ipcRenderer.send("update:dismiss", v),
   quit: () => ipcRenderer.send("app:quit"),
 });

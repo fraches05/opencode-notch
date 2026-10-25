@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Tray, Menu, screen, globalShortcut, shell } from "electron";
+import { app, BrowserWindow, ipcMain, Tray, Menu, screen, globalShortcut, shell, Notification } from "electron";
 import path from "node:path";
 import fs from "node:fs";
 import os from "node:os";
@@ -83,12 +83,43 @@ const sess = (id) => {
   return s;
 };
 
+const fmtDur = (ms) => {
+  const sec = Math.max(1, Math.round(ms / 1000));
+  if (sec < 60) return `${sec}s`;
+  const m = Math.floor(sec / 60);
+  return `${m}m${String(sec % 60).padStart(2, "0")}s`;
+};
+
+/* Toast for long runs only, and never while the panel is already under the
+   cursor. `silent` because the renderer plays its own chime. */
+function toastDone(s, ran) {
+  if (!notify || ran < 20e3) return;
+  if (hoverState && win?.isVisible()) return;
+  try {
+    if (!Notification.isSupported()) return;
+    const n = new Notification({
+      title: t("doneToast"),
+      body: `${s.title || t("untitled")} · ${fmtDur(ran)}`,
+      silent: true,
+    });
+    n.on("click", () => {
+      win?.show();
+      setPinned(true);
+    });
+    n.show();
+  } catch (e) {
+    log("toast:", e?.message || String(e));
+  }
+}
+
 const finishTurn = (s) => {
+  const ran = s.since ? Date.now() - s.since : 0;
   if (s.busyAlive || !s.doneAt) {
     s.busyAlive = false;
     s.status = "idle";
     s.doneAt = Date.now();
     s.statusMessage = "";
+    toastDone(s, ran);
   }
   s.ctxAt = 0;
   s.retryNext = null;
@@ -412,6 +443,8 @@ const send = () => {
       lang: resolveLang(),
       atTop,
       hover: hoverState,
+      notify,
+      update: updatePending() ? { ...updateInfo } : null,
       models: Object.fromEntries(S.models),
       sessions: [...S.sessions.values()].map((s) => ({ ...s, tokens: { ...s.tokens, cache: { ...s.tokens.cache } } })),
       permissions: [...S.permissions.values()].map((p) => ({ ...p })),
@@ -496,6 +529,9 @@ let muted = false; // silence the permission beep
 let pinned = false; // keep the panel open regardless of hover
 let theme = "notch"; // notch | midnight | mono
 let lang = "system"; // system | en | ru
+let notify = true; // Windows toast when a long run ends
+let updateDismissed = ""; // release the user already said "later" to
+let updateInfo = null; // { version, url, name } when a newer release exists
 let syncing = false; // true while our own setBounds moves the window
 
 const THEMES = ["notch", "midnight", "mono"];
@@ -516,9 +552,14 @@ const STRINGS = {
     themeMono: "Mono",
     lang: "Language",
     langSystem: "System",
+    notify: "Notify when a run ends",
+    checkUpdates: "Check for updates",
+    update: "Update",
     launch: "Launch at login",
     quit: "Quit",
     tip: "OpenCode notch",
+    untitled: "untitled session",
+    doneToast: "Session finished",
   },
   ru: {
     pin: "Закрепить панель",
@@ -533,9 +574,14 @@ const STRINGS = {
     themeMono: "Mono",
     lang: "Язык",
     langSystem: "Как в системе",
+    notify: "Уведомлять о завершении",
+    checkUpdates: "Проверить обновления",
+    update: "Обновление",
     launch: "Запуск при входе",
     quit: "Выход",
     tip: "OpenCode notch",
+    untitled: "сессия без названия",
+    doneToast: "Сессия завершена",
   },
 };
 
@@ -558,6 +604,8 @@ function loadPrefs() {
     pinned = !!c.pinned;
     if (THEMES.includes(c.theme)) theme = c.theme;
     if (LANGS.includes(c.lang)) lang = c.lang;
+    notify = c.notify !== false;
+    if (typeof c.updateDismissed === "string") updateDismissed = c.updateDismissed;
   } catch {}
 }
 let saveT = null;
@@ -566,9 +614,59 @@ function savePrefs() {
   saveT = setTimeout(() => {
     try {
       fs.mkdirSync(path.dirname(CFG_PATH), { recursive: true });
-      fs.writeFileSync(CFG_PATH, JSON.stringify({ anchorX, anchorY, muted, pinned, theme, lang }, null, 2));
+      fs.writeFileSync(
+        CFG_PATH,
+        JSON.stringify({ anchorX, anchorY, muted, pinned, theme, lang, notify, updateDismissed }, null, 2),
+      );
     } catch {}
   }, 400);
+}
+
+/* ---------------- update check (GitHub releases) ---------------- */
+const REPO_SLUG = "fraches05/opencode-notch";
+const RELEASES_URL = `https://github.com/${REPO_SLUG}/releases/latest`;
+
+/* compare dotted versions ("0.2.0" vs "0.1.0"); returns -1, 0 or 1 */
+function cmpVer(a, b) {
+  const pa = String(a).replace(/^v/, "").split(/[.+-]/).map((x) => parseInt(x, 10) || 0);
+  const pb = String(b).replace(/^v/, "").split(/[.+-]/).map((x) => parseInt(x, 10) || 0);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (pa[i] ?? 0) - (pb[i] ?? 0);
+    if (d) return d > 0 ? 1 : -1;
+  }
+  return 0;
+}
+
+const updatePending = () => !!updateInfo && updateInfo.version !== updateDismissed;
+
+/* quiet by design: one request, no retries, a failure is only logged */
+async function checkUpdate() {
+  try {
+    const r = await fetch(`https://api.github.com/repos/${REPO_SLUG}/releases/latest`, {
+      headers: { accept: "application/vnd.github+json", "user-agent": "opencode-notch" },
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const j = await r.json();
+    const latest = String(j.tag_name ?? "").replace(/^v/, "").trim();
+    if (!latest) throw new Error("release has no tag");
+    const newer = cmpVer(latest, app.getVersion()) > 0;
+    updateInfo = newer ? { version: latest, name: j.name || `v${latest}`, url: j.html_url || RELEASES_URL } : null;
+    if (newer) log(`update available: v${latest} (running v${app.getVersion()})`);
+    send();
+    tray?.setContextMenu(buildTrayMenu());
+    return { ok: true, latest, newer };
+  } catch (e) {
+    log("update check:", e?.message || String(e));
+    return { ok: false, error: String(e?.message || e) };
+  }
+}
+
+function dismissUpdate(v) {
+  if (typeof v !== "string" || !v) return;
+  updateDismissed = v;
+  savePrefs();
+  send();
+  tray?.setContextMenu(buildTrayMenu());
 }
 
 function place(center = false) {
@@ -677,6 +775,15 @@ function setLang(v) {
 
 function buildTrayMenu() {
   return Menu.buildFromTemplate([
+    ...(updatePending()
+      ? [
+          {
+            label: `${t("update")} ${updateInfo.version} — ${updateInfo.name}`,
+            click: () => shell.openExternal(updateInfo.url),
+          },
+          { type: "separator" },
+        ]
+      : []),
     { label: t(pinned ? "unpin" : "pin"), click: () => setPinned(!pinned) },
     { label: t("show"), click: () => win?.show() },
     { label: t("hide"), click: () => win?.hide() },
@@ -709,12 +816,23 @@ function buildTrayMenu() {
       ],
     },
     {
+      label: t("notify"),
+      type: "checkbox",
+      checked: notify,
+      click: (mi) => {
+        notify = mi.checked;
+        savePrefs();
+        send();
+      },
+    },
+    {
       label: t("launch"),
       type: "checkbox",
       checked: app.getLoginItemSettings().openAtLogin,
       click: (mi) => app.setLoginItemSettings({ openAtLogin: mi.checked, args: ["--hidden"] }),
     },
     { type: "separator" },
+    { label: t("checkUpdates"), click: () => checkUpdate() },
     { label: t("quit"), click: () => app.quit() },
   ]);
 }
@@ -730,8 +848,15 @@ function createTray() {
 }
 
 function ipcWire() {
-  ipcMain.handle("app:ready", () => {
-    win?.webContents.send("state", {
+  ipcMain.handle("update:check", () => checkUpdate());
+  ipcMain.on("update:dismiss", (e, v) => dismissUpdate(v));
+  ipcMain.on("ui:notify", (e, v) => {
+    notify = !!v;
+    savePrefs();
+    send();
+    tray?.setContextMenu(buildTrayMenu());
+  });
+  ipcMain.handle("app:ready", () => {    win?.webContents.send("state", {
       connected: S.connected,
       ts: Date.now(),
       pinned,
@@ -739,6 +864,8 @@ function ipcWire() {
       theme,
       lang: resolveLang(),
       hover: hoverState,
+      notify,
+      update: updatePending() ? { ...updateInfo } : null,
       models: Object.fromEntries(S.models),
       sessions: [...S.sessions.values()].map((s) => ({ ...s })),
       permissions: [...S.permissions.values()],
@@ -907,6 +1034,8 @@ if (!app.requestSingleInstanceLock()) {
     screen.on("display-removed", () => place());
     screen.on("display-added", () => place());
     sseLoop();
+    setTimeout(() => checkUpdate(), 5000);
+    setInterval(() => checkUpdate(), 6 * 3600e3);
     setInterval(() => {
       if (S.connected) refreshContexts().catch(() => {});
     }, 15000);

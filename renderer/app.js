@@ -12,6 +12,7 @@ const permslot = document.getElementById("permslot");
 const rowsEl = document.getElementById("rows");
 const formsEl = document.getElementById("forms");
 const doneslot = document.getElementById("doneslot");
+const upslot = document.getElementById("upslot");
 const sumEl = document.getElementById("sum");
 const input = document.getElementById("in");
 const filterEl = document.getElementById("filt");
@@ -79,6 +80,10 @@ const STR = {
     done: "Done",
     doneErr: "Stopped",
     tok: "tok",
+    updateTtl: "Update {v} is out",
+    updateSub: "A newer build is available.",
+    updateGet: "Download",
+    updateLater: "Later",
     sessionsOne: "session",
     sessionsFew: "sessions",
     sessionsMany: "sessions",
@@ -128,6 +133,10 @@ const STR = {
     done: "Готово",
     doneErr: "Остановлено",
     tok: "ток",
+    updateTtl: "Вышло обновление {v}",
+    updateSub: "Есть сборка посвежее — забирайте, когда удобно.",
+    updateGet: "Скачать",
+    updateLater: "Позже",
     sessionsOne: "сессия",
     sessionsFew: "сессии",
     sessionsMany: "сессий",
@@ -451,6 +460,28 @@ function renderDone() {
   doneslot.innerHTML = doneCards.map(doneHTML).join("");
 }
 
+let lastUpSig = "";
+function updateHTML(u) {
+  const sub = u.name && !u.name.includes(u.version) ? u.name : t("updateSub");
+  return `<div class="ucard" data-uver="${esc(u.version)}">
+  <div class="uico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5V4"/><path d="m7 9 5-5 5 5"/><path d="M4.5 16.5v2a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-2"/></svg></div>
+  <div class="utxt">
+    <div class="uttl">${esc(t("updateTtl", { v: u.version }))}</div>
+    <div class="usub">${esc(sub)}</div>
+  </div>
+  <button class="uget" data-uget="${esc(u.url)}">${esc(t("updateGet"))}</button>
+  <button class="ulater" data-udismiss="${esc(u.version)}">${esc(t("updateLater"))}</button>
+</div>`;
+}
+
+function renderUpdate() {
+  const u = snap?.update ?? null;
+  const sig = u ? `${u.version}|${u.url}` : "";
+  if (sig === lastUpSig) return;
+  lastUpSig = sig;
+  upslot.innerHTML = u ? updateHTML(u) : "";
+}
+
 /* ---------------- rendering ---------------- */
 function render() {
   if (!snap) return;
@@ -470,6 +501,8 @@ function render() {
 
   /* finished-run confirmation */
   renderDone();
+  /* update offer — never forces the panel open */
+  renderUpdate();
 
   const fq = filter.trim().toLowerCase();
   const all = (snap.sessions ?? [])
@@ -518,6 +551,7 @@ function render() {
     if (dots.length >= 7) break;
     dots.push(`<span class="sdot ${statusClass(s, permed)}"></span>`);
   }
+  if (snap.update) dots.push('<span class="sdot upd" aria-hidden="true"></span>');
   pdots.innerHTML = dots.join("");
 
   /* permission cards */
@@ -746,6 +780,21 @@ formsEl.addEventListener("change", (e) => {
 });
 
 document.addEventListener("click", async (e) => {
+  const upGet = e.target.closest("[data-uget]");
+  if (upGet) {
+    notch.openExternal(upGet.dataset.uget);
+    return;
+  }
+  const upLater = e.target.closest("[data-udismiss]");
+  if (upLater) {
+    notch.dismissUpdate?.(upLater.dataset.udismiss);
+    if (snap) snap.update = null;
+    lastUpSig = "";
+    upslot.innerHTML = "";
+    render();
+    requestAnimationFrame(measure);
+    return;
+  }
   const doneCard = e.target.closest("[data-ddone]");
   if (doneCard) {
     doneCards = doneCards.filter((c) => c.id !== doneCard.dataset.ddone);

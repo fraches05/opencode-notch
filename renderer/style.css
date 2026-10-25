@@ -30,6 +30,8 @@
   --att-hover: #ffd166;
   --red-glow: rgba(255, 107, 107, 0.14);
   --red-bg: rgba(255, 107, 107, 0.12);
+  --up-border: rgba(111, 198, 255, 0.26);
+  --up-bg: rgba(111, 198, 255, 0.06);
   --pin-on: var(--att);
 }
 
@@ -66,8 +68,9 @@ body[data-theme="midnight"] {
   --att-hover: #ffd166;
   --red-glow: rgba(255, 77, 125, 0.16);
   --red-bg: rgba(255, 77, 125, 0.14);
+  --up-border: rgba(77, 159, 255, 0.32);
+  --up-bg: rgba(77, 159, 255, 0.08);
 }
-
 body[data-theme="mono"] {
   --busy: #d5d9e0;
   --att: #ffc043;
@@ -101,6 +104,8 @@ body[data-theme="mono"] {
   --att-hover: #ffd166;
   --red-glow: rgba(255, 255, 255, 0.12);
   --red-bg: rgba(255, 255, 255, 0.08);
+  --up-border: rgba(255, 255, 255, 0.14);
+  --up-bg: rgba(255, 255, 255, 0.05);
   --pin-on: #e6e8ec;
 }
 
@@ -600,6 +605,87 @@ body.atop #panel { border-radius: 0 0 18px 18px; border-top-color: transparent; 
   to { transform: scaleX(0); }
 }
 
+/* ---------- update offer (never blocks, never forces the panel open) ---------- */
+.ucard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--up-border);
+  background: linear-gradient(96deg, var(--up-bg) 0%, rgba(255, 255, 255, 0.02) 78%);
+  border-radius: 13px;
+  padding: 9px 11px 10px;
+  margin-bottom: 7px;
+  animation: upop 260ms cubic-bezier(0.22, 1.2, 0.36, 1) both;
+}
+.uico {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: inset 0 0 0 1px var(--up-border);
+  color: var(--busy);
+  animation: uglow 3.4s ease-in-out infinite;
+}
+.uico svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.utxt { flex: 1 1 auto; min-width: 0; }
+.uttl { font-size: 12.5px; font-weight: 650; color: var(--txt); letter-spacing: 0.1px; }
+.usub {
+  font-size: 10.5px;
+  color: var(--label);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.uget,
+.ulater {
+  flex: 0 0 auto;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.uget {
+  border: 1px solid transparent;
+  background: var(--busy);
+  color: #04121f;
+}
+.uget:hover { filter: brightness(1.1); }
+.uget:focus-visible,
+.ulater:focus-visible { outline: 2px solid var(--focus-strong); outline-offset: 1px; }
+.ulater {
+  border: 1px solid var(--line2);
+  background: transparent;
+  color: var(--dim);
+}
+.ulater:hover { color: var(--txt); background: rgba(255, 255, 255, 0.05); }
+
+/* pill dot: updates are available */
+.sdot.upd { background: var(--busy); animation: pulse 3s ease-in-out infinite; }
+
+@keyframes upop {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes uglow {
+  0%, 100% { box-shadow: inset 0 0 0 1px var(--up-border); }
+  50% { box-shadow: inset 0 0 0 1px var(--up-border), 0 0 14px -6px var(--busy); }
+}
+
 /* ---------- forms strip ---------- */
 .fstrip {
   font-size: 11px;
@@ -641,10 +727,12 @@ body.atop #panel { border-radius: 0 0 18px 18px; border-top-color: transparent; 
   .bfill { transition: none; }
   .dcard, .dico, .dico .dr { animation: none !important; }
   .dico .dk { animation: none !important; stroke-dashoffset: 0; }
+  .ucard, .uico, .sdot.upd { animation: none !important; }
 }
 
 /* Keep the pill/panel edge visible when Windows forces a color scheme. */
 @media (forced-colors: active) {
   #pill, #panel { border: 1px solid CanvasText; }
   .dcard { border: 1px solid CanvasText; }
+  .ucard { border: 1px solid CanvasText; }
 }
