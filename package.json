@@ -1,7 +1,7 @@
 {
   "name": "opencode-notch",
   "productName": "OpenCode Notch",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A macOS-style notch for Windows that watches your OpenCode sessions — approvals, forms, live activity and context usage at the top of your screen.",
   "license": "MIT",
   "author": "fraches05",
@@ -33,12 +33,55 @@
     "start": "electron .",
     "icon": "node mkicon.mjs",
     "ico": "node mkico.mjs build/icon-256.png build/icon.ico",
-    "dist": "node mkico.mjs build/icon-256.png build/icon.ico && npx @electron/packager@18 . \"OpenCode Notch\" --platform=win32 --arch=x64 --out=dist --overwrite --asar --icon=build/icon.ico --ignore=\"^/dist\" --ignore=\"^/docs\" --ignore=\"^/build\""
+    "dist": "node mkico.mjs build/icon-256.png build/icon.ico && npx @electron/packager@18 . \"OpenCode Notch\" --platform=win32 --arch=x64 --out=dist --overwrite --asar --icon=build/icon.ico --ignore=\"^/dist\" --ignore=\"^/docs\" --ignore=\"^/build\"",
+    "make": "node mkico.mjs build/icon-256.png build/icon.ico && electron-builder --win nsis"
+  },
+  "build": {
+    "appId": "app.fraches05.opencodenotch",
+    "productName": "OpenCode Notch",
+    "copyright": "MIT — fraches05",
+    "directories": {
+      "output": "dist-installer",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.cjs",
+      "tray.png",
+      "renderer/**/*",
+      "package.json",
+      "!dist/**",
+      "!dist-installer/**",
+      "!docs/**",
+      "!build/**"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "OpenCode Notch",
+      "artifactName": "OpenCodeNotch-Setup-${version}.exe",
+      "deleteAppDataOnUninstall": false
+    }
   },
   "dependencies": {
     "@opencode/client": "^2.1.4"
   },
   "devDependencies": {
-    "electron": "^45.0.0"
+    "electron": "^45.0.0",
+    "electron-builder": "^26.18.0"
   }
 }
