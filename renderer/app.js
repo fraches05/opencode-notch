@@ -16,6 +16,7 @@ const input = document.getElementById("in");
 const filterEl = document.getElementById("filt");
 const pinBtn = document.getElementById("pin");
 const muteBtn = document.getElementById("mute");
+const closeBtn = document.getElementById("q");
 
 /* window.notch is exposed by preload (contextBridge) — do not redeclare */
 
@@ -29,6 +30,126 @@ let pinned = false;
 let muted = false;
 const seenPerms = new Set();
 const seenForms = new Set();
+
+/* ---------------- i18n ---------------- */
+let lang = "en"; // "en" | "ru" — resolved in main (system locale when set to "system")
+
+const STR = {
+  en: {
+    session: "session",
+    untitled: "untitled session",
+    reviewInSession: "return to the session to review",
+    inputRequired: "Input required",
+    cancelForm: "Cancel form",
+    send: "Send",
+    waitingRetry: "waiting to retry…",
+    reply: "reply…",
+    replyTo: "reply → {name}",
+    sending: "sending…",
+    filterPh: "filter sessions…",
+    pinTitle: "Pin panel open (Ctrl+Alt+N)",
+    muteTitle: "Mute sounds",
+    closeTitle: "Close notch",
+    running: "{n} running",
+    approvals: "{n} approval{s} needed",
+    forms: "{n} form{s}",    idle: "idle",
+    reconnecting: "reconnecting…",
+    permission: "Permission",
+    allowOnce: "Allow once",
+    always: "Always",
+    reject: "Reject",
+    retry: "retry {s}",
+    retrying: "retrying",
+    doneAgo: "done {t} ago",
+    error: "error",
+    interrupt: "Interrupt",
+    ctxTitle: "context now {u} tok · session total {t} tok",
+    ctxFull: "ctx {u} / {l}",
+    ctxUsed: "ctx {u}",
+    sum: "Σ <b>{n}</b> {sessions} · <b>{b}</b> running · {tok} tok{cost}",
+    matches: "{n} {match}",
+    fillRequired: "fill required",
+    retryBtn: "✕ retry",
+    sessionsOne: "session",
+    sessionsFew: "sessions",
+    sessionsMany: "sessions",
+    matchOne: "match",
+    matchMany: "matches",
+    approvalOne: "approval",
+    approvalMany: "approvals",
+    formOne: "form",
+    formMany: "forms",
+  },
+  ru: {
+    session: "сессия",
+    untitled: "сессия без названия",
+    reviewInSession: "вернитесь в сессию, чтобы посмотреть детали",
+    inputRequired: "Требуется ввод",
+    cancelForm: "Отменить форму",
+    send: "Отправить",
+    waitingRetry: "жду повтора…",
+    reply: "ответ…",
+    replyTo: "ответ → {name}",
+    sending: "отправка…",
+    filterPh: "фильтр сессий…",
+    pinTitle: "Закрепить панель (Ctrl+Alt+N)",
+    muteTitle: "Выключить звук",
+    closeTitle: "Убрать панель",
+    running: "{n} в работе",
+    approvals: "{approval}: {n}",
+    forms: "{form}: {n}",
+    idle: "простой",
+    reconnecting: "переподключение…",
+    permission: "Разрешение",
+    allowOnce: "Разрешить",
+    always: "Всегда",
+    reject: "Отклонить",
+    retry: "повтор через {s}",
+    retrying: "повтор",
+    doneAgo: "готово {t} назад",
+    error: "ошибка",
+    interrupt: "Прервать",
+    ctxTitle: "контекст {u} ток · всего в сессии {t} ток",
+    ctxFull: "контекст {u} / {l}",
+    ctxUsed: "контекст {u}",
+    sum: "Σ <b>{n}</b> {sessions} · <b>{b}</b> в работе · {tok} ток{cost}",
+    matches: "{n} {match}",
+    fillRequired: "заполните поля",
+    retryBtn: "✕ повторить",
+    sessionsOne: "сессия",
+    sessionsFew: "сессии",
+    sessionsMany: "сессий",
+    matchOne: "совпадение",
+    matchMany: "совпадений",
+    approvalOne: "подтверждение",
+    approvalFew: "подтверждения",
+    approvalMany: "подтверждений",
+    formOne: "форма",
+    formFew: "формы",
+    formMany: "форм",
+  },
+};
+
+const t = (k, v) => {
+  let s = STR[lang]?.[k] ?? STR.en[k] ?? k;
+  if (v) for (const [key, val] of Object.entries(v)) s = s.split(`{${key}}`).join(String(val));
+  return s;
+};
+
+/* Russian nouns need three forms; English only two */
+const plural = (base, n) => {
+  const a = Math.abs(n) % 100;
+  const b = a % 10;
+  if (lang === "ru") {
+    if (a > 10 && a < 20) return t(`${base}Many`);
+    if (b > 1 && b < 5) return t(`${base}Few`);
+    return b === 1 ? t(`${base}One`) : t(`${base}Many`);
+  }
+  return n === 1 ? t(`${base}One`) : t(`${base}Many`);
+};
+
+/* per-language "1 form" / "2 forms" helper for the s-suffix keys */
+const sIf = (n) => (lang === "ru" || n === 1 ? "" : "s");
 
 /* ---------------- helpers ---------------- */
 const baseDir = (d) => String(d ?? "").split(/[\\/]/).filter(Boolean).pop() ?? "";
@@ -62,7 +183,7 @@ const totalTokens = (s) =>
 
 const baseName = (sid) => {
   const s = (snap?.sessions ?? []).find((x) => x.id === sid);
-  return s ? baseDir(s.directory) || (s.title || "").slice(0, 14) || "session" : "session";
+  return s ? baseDir(s.directory) || (s.title || "").slice(0, 14) || t("session") : t("session");
 };
 
 function limitFor(s) {
@@ -96,7 +217,7 @@ function permDetail(p) {
     if (sv.length > 140) sv = sv.slice(0, 140) + "…";
     lines.push(`${k}: ${sv}`);
   }
-  return lines.slice(0, 4).join("  ·  ") || "return to the session to review";
+  return lines.slice(0, 4).join("  ·  ") || t("reviewInSession");
 }
 
 function beep() {
@@ -181,12 +302,12 @@ function formCardHTML(f) {
   const fields = (f.fields ?? []).filter((x) => fieldVisible(f.id, x)).map((x) => fieldHTML(f.id, x)).join("");
   return `
 <div class="fcard" data-form="${esc(f.id)}" data-fsid="${esc(f.sessionID)}">
-  <div class="ft"><span class="ic">▤</span>${esc(f.title || "Input required")}
-    <button class="fx" data-fcancel="${esc(f.id)}" data-fsid="${esc(f.sessionID)}" title="Cancel form">✕</button>
+  <div class="ft"><span class="ic">▤</span>${esc(f.title || t("inputRequired"))}
+    <button class="fx" data-fcancel="${esc(f.id)}" data-fsid="${esc(f.sessionID)}" title="${esc(t("cancelForm"))}">✕</button>
   </div>
   <div class="fbody">${fields}</div>
   <div class="factions">
-    <button class="fsend" data-fsend="${esc(f.id)}" data-fsid="${esc(f.sessionID)}">Send</button>
+    <button class="fsend" data-fsend="${esc(f.id)}" data-fsid="${esc(f.sessionID)}">${esc(t("send"))}</button>
   </div>
 </div>`;
 }
@@ -227,7 +348,7 @@ function collectAnswer(fid, fields) {
 
 /* ---------------- activity line ---------------- */
 function activityLine(s) {
-  if (s.status === "retry") return s.statusMessage ? { text: s.statusMessage, cls: "err", mark: "↻" } : { text: "waiting to retry…", cls: "", mark: "↻" };
+  if (s.status === "retry") return s.statusMessage ? { text: s.statusMessage, cls: "err", mark: "↻" } : { text: t("waitingRetry"), cls: "", mark: "↻" };
   if (s.status !== "busy") return null;
   if (s.toolDetail) {
     const mark = s.toolStatus === "ok" ? "✓" : s.toolStatus === "err" ? "✕" : "…";
@@ -250,6 +371,11 @@ function render() {
   muted = !!snap.muted;
   document.body.classList.toggle("atop", !!snap.atTop);
   document.body.dataset.theme = snap.theme || "notch";
+  lang = snap.lang === "ru" ? "ru" : "en";
+  filterEl.placeholder = t("filterPh");
+  pinBtn.title = t("pinTitle");
+  muteBtn.title = t("muteTitle");
+  closeBtn.title = t("closeTitle");
 
   const fq = filter.trim().toLowerCase();
   const all = (snap.sessions ?? [])
@@ -273,16 +399,20 @@ function render() {
   frame.classList.toggle("ex", expanded);
 
   if (!target || !active.some((s) => s.id === target)) target = active[0]?.id ?? null;
-  input.placeholder = target && (snap.sessions ?? []).length ? `reply → ${baseName(target)}` : "reply…";
+  input.placeholder = target && (snap.sessions ?? []).length ? t("replyTo", { name: baseName(target) }) : t("reply");
 
   /* header */
   conn.className = `sdot ${snap.connected ? "done" : "off"}`;
   const busyN = active.filter((s) => s.status === "busy" || s.status === "retry").length;
   hstats.textContent = snap.connected
-    ? [busyN ? `${busyN} running` : null, perms.length ? `${perms.length} approval${perms.length > 1 ? "s" : ""} needed` : null, forms.length ? `${forms.length} form${forms.length > 1 ? "s" : ""}` : null]
+    ? [
+        busyN ? t("running", { n: busyN }) : null,
+        perms.length ? t("approvals", { n: perms.length, s: sIf(perms.length), approval: plural("approval", perms.length) }) : null,
+        forms.length ? t("forms", { n: forms.length, s: sIf(forms.length), form: plural("form", forms.length) }) : null,
+      ]
         .filter(Boolean)
-        .join(" · ") || "idle"
-    : "reconnecting…";
+        .join(" · ") || t("idle")
+    : t("reconnecting");
   pinBtn.classList.toggle("on", pinned);
   muteBtn.classList.toggle("off", muted);
 
@@ -300,12 +430,12 @@ function render() {
     .map(
       (p) => `
 <div class="pcard" data-pid="${esc(p.id)}">
-  <div class="pt"><span class="ic">⚠</span>${esc(p.title || p.action || "Permission")}</div>
+  <div class="pt"><span class="ic">⚠</span>${esc(p.title || p.action || t("permission"))}</div>
   <div class="pd">${esc(permDetail(p))}</div>
   <div class="pb">
-    <button class="b1" data-act="once" data-pid="${esc(p.id)}" data-sid="${esc(p.sessionID)}">Allow once</button>
-    <button class="b2" data-act="always" data-pid="${esc(p.id)}" data-sid="${esc(p.sessionID)}">Always</button>
-    <button class="b3" data-act="reject" data-pid="${esc(p.id)}" data-sid="${esc(p.sessionID)}">Reject</button>
+    <button class="b1" data-act="once" data-pid="${esc(p.id)}" data-sid="${esc(p.sessionID)}">${esc(t("allowOnce"))}</button>
+    <button class="b2" data-act="always" data-pid="${esc(p.id)}" data-sid="${esc(p.sessionID)}">${esc(t("always"))}</button>
+    <button class="b3" data-act="reject" data-pid="${esc(p.id)}" data-sid="${esc(p.sessionID)}">${esc(t("reject"))}</button>
   </div>
 </div>`,
     )
@@ -322,12 +452,12 @@ function render() {
       let right = "";
       let rightErr = false;
       if (s.status === "retry") {
-        right = [retryIn(s, now) ? `retry ${retryIn(s, now)}` : "retrying", s.attempt ? `#${s.attempt}` : null].filter(Boolean).join(" ");
+        right = [retryIn(s, now) ? t("retry", { s: retryIn(s, now) }) : t("retrying"), s.attempt ? `#${s.attempt}` : null].filter(Boolean).join(" ");
         rightErr = !!s.error || !!s.statusMessage;
       } else if (s.status !== "idle") {
         right = fmtElapsed(now - (s.since ?? now));
       } else if (s.doneAt) {
-        right = `done ${fmtAgo(now - s.doneAt)} ago`;
+        right = t("doneAgo", { t: fmtAgo(now - s.doneAt) });
       }
       if (s.status !== "retry" && s.error) rightErr = true;
       const act = activityLine(s);
@@ -337,8 +467,8 @@ function render() {
   <span class="sdot ${cls}"></span>
   <div class="l1row">
     <div class="l1">
-      <span class="stitle">${esc(s.title || "untitled session")}</span>
-      <span class="stime ${rightErr ? "err" : ""}">${esc(s.error && s.status !== "retry" ? `${right} · error` : right)}</span>
+      <span class="stitle">${esc(s.title || t("untitled"))}</span>
+      <span class="stime ${rightErr ? "err" : ""}">${esc(s.error && s.status !== "retry" ? `${right} · ${t("error")}` : right)}</span>
     </div>
     <div class="l2">
       <span class="lmeta">
@@ -348,15 +478,15 @@ function render() {
         ${s.lastTool ? `<span class="sep">·</span><span class="stool" title="${esc(s.lastTool)}">${esc(s.lastTool)}</span>` : ""}
       </span>
       ${cost ? `<span class="cost">${esc(cost)}</span>` : ""}
-      ${s.status !== "idle" ? `<button class="ibtn" data-int="${esc(s.id)}" title="Interrupt">■</button>` : ""}
+      ${s.status !== "idle" ? `<button class="ibtn" data-int="${esc(s.id)}" title="${esc(t("interrupt"))}">■</button>` : ""}
     </div>
     ${
       act
         ? `<div class="l3" title="${esc(act.text)}"><span class="tstat ${act.cls}">${act.mark}</span><span class="ltext">${esc(act.text)}</span></div>`
         : ""
     }
-    <div class="lbar" title="context now ${fmtTok(used)} tok · session total ${fmtTok(totalTokens(s))} tok">
-      <span class="spct">${limit ? `ctx ${fmtTok(used)} / ${fmtTok(limit)}` : (used ? `ctx ${fmtTok(used)}` : "\u00a0")}${pct !== null ? ` · ${pct}%` : ""}</span>
+    <div class="lbar" title="${esc(t("ctxTitle", { u: fmtTok(used), t: fmtTok(totalTokens(s)) }))}">
+      <span class="spct">${limit ? t("ctxFull", { u: fmtTok(used), l: fmtTok(limit) }) : used ? t("ctxUsed", { u: fmtTok(used) }) : "\u00a0"}${pct !== null ? ` · ${pct}%` : ""}</span>
       ${pct !== null ? `<span class="btrack"><span class="bfill ${fillCls}" style="width:${pct}%"></span></span>` : ""}
     </div>
   </div>
@@ -372,9 +502,15 @@ function render() {
   const sumTok = active.reduce((a, s) => a + totalTokens(s), 0);
   sumEl.innerHTML =
     active.length && !fq
-      ? `Σ <b>${active.length}</b> session${active.length > 1 ? "s" : ""} · <b>${busyN}</b> running · ${fmtTok(sumTok)} tok${sumCost > 0 ? ` · <b>${esc(fmtCost(sumCost))}</b>` : ""}`
+      ? t("sum", {
+          n: active.length,
+          sessions: plural("sessions", active.length),
+          b: busyN,
+          tok: fmtTok(sumTok),
+          cost: sumCost > 0 ? ` · <b>${esc(fmtCost(sumCost))}</b>` : "",
+        })
       : active.length
-        ? `${active.length} match${active.length > 1 ? "es" : ""}`
+        ? t("matches", { n: active.length, match: plural("match", active.length) })
         : "";
 }
 
@@ -438,7 +574,7 @@ filterEl.addEventListener("input", () => {
   render();
   requestAnimationFrame(measure);
 });
-document.getElementById("q").addEventListener("click", () => {
+closeBtn.addEventListener("click", () => {
   dismissed = true;
   pinned = false;
   notch.pin(false);
@@ -515,17 +651,17 @@ document.addEventListener("click", async (e) => {
     if (!form) return;
     const answer = collectAnswer(fid, form.fields ?? []);
     if (!answer) {
-      fsend.textContent = "fill required";
-      setTimeout(() => (fsend.textContent = "Send"), 1400);
+      fsend.textContent = t("fillRequired");
+      setTimeout(() => (fsend.textContent = t("send")), 1400);
       return;
     }
     fsend.disabled = true;
-    fsend.textContent = "sending…";
+    fsend.textContent = t("sending");
     const res = await notch.formReply(form.sessionID, fid, answer);
     if (!res?.ok) {
       fsend.disabled = false;
-      fsend.textContent = "✕ retry";
-      setTimeout(() => (fsend.textContent = "Send"), 1400);
+      fsend.textContent = t("retryBtn");
+      setTimeout(() => (fsend.textContent = t("send")), 1400);
     }
     return;
   }
@@ -558,7 +694,7 @@ document.addEventListener("click", async (e) => {
   if (row && row.dataset.sid) {
     target = row.dataset.sid;
     input.focus();
-    input.placeholder = `reply → ${baseName(target)}`;
+    input.placeholder = t("replyTo", { name: baseName(target) });
     render();
   }
 });
@@ -568,6 +704,6 @@ input.addEventListener("keydown", async (e) => {
   const v = input.value.trim();
   if (!v || !target) return;
   input.value = "";
-  input.placeholder = "sending…";
+  input.placeholder = t("sending");
   await notch.prompt(target, v);
 });

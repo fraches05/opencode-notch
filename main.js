@@ -409,6 +409,7 @@ const send = () => {
       pinned,
       muted,
       theme,
+      lang: resolveLang(),
       atTop,
       hover: hoverState,
       models: Object.fromEntries(S.models),
@@ -494,9 +495,56 @@ let anchorY = null; // top edge, DIP screen coords
 let muted = false; // silence the permission beep
 let pinned = false; // keep the panel open regardless of hover
 let theme = "notch"; // notch | midnight | mono
+let lang = "system"; // system | en | ru
 let syncing = false; // true while our own setBounds moves the window
 
 const THEMES = ["notch", "midnight", "mono"];
+const LANGS = ["system", "en", "ru"];
+
+/* ---------------- i18n (tray labels; the renderer carries its own table) ---------------- */
+const STRINGS = {
+  en: {
+    pin: "Pin panel open",
+    unpin: "Unpin panel",
+    show: "Show",
+    hide: "Hide",
+    center: "Center at top",
+    mute: "Mute sounds",
+    theme: "Theme",
+    themeNotch: "Notch",
+    themeMidnight: "Midnight",
+    themeMono: "Mono",
+    lang: "Language",
+    langSystem: "System",
+    launch: "Launch at login",
+    quit: "Quit",
+    tip: "OpenCode notch",
+  },
+  ru: {
+    pin: "Закрепить панель",
+    unpin: "Открепить панель",
+    show: "Показать",
+    hide: "Скрыть",
+    center: "По центру сверху",
+    mute: "Без звука",
+    theme: "Тема",
+    themeNotch: "Notch",
+    themeMidnight: "Midnight",
+    themeMono: "Mono",
+    lang: "Язык",
+    langSystem: "Как в системе",
+    launch: "Запуск при входе",
+    quit: "Выход",
+    tip: "OpenCode notch",
+  },
+};
+
+/* "system" follows the OS locale — anything Russian is rendered in Russian */
+function resolveLang() {
+  if (lang !== "system") return lang;
+  return String(app.getLocale?.() ?? "").toLowerCase().startsWith("ru") ? "ru" : "en";
+}
+const t = (k) => STRINGS[resolveLang()]?.[k] ?? STRINGS.en[k] ?? k;
 
 const CFG_PATH = path.join(app.getPath("userData"), "notch.json");
 function loadPrefs() {
@@ -509,6 +557,7 @@ function loadPrefs() {
     muted = !!c.muted;
     pinned = !!c.pinned;
     if (THEMES.includes(c.theme)) theme = c.theme;
+    if (LANGS.includes(c.lang)) lang = c.lang;
   } catch {}
 }
 let saveT = null;
@@ -517,7 +566,7 @@ function savePrefs() {
   saveT = setTimeout(() => {
     try {
       fs.mkdirSync(path.dirname(CFG_PATH), { recursive: true });
-      fs.writeFileSync(CFG_PATH, JSON.stringify({ anchorX, anchorY, muted, pinned, theme }, null, 2));
+      fs.writeFileSync(CFG_PATH, JSON.stringify({ anchorX, anchorY, muted, pinned, theme, lang }, null, 2));
     } catch {}
   }, 400);
 }
@@ -617,15 +666,24 @@ function setTheme(v) {
   tray?.setContextMenu(buildTrayMenu());
 }
 
+function setLang(v) {
+  if (!LANGS.includes(v) || v === lang) return;
+  lang = v;
+  savePrefs();
+  send();
+  tray?.setToolTip(t("tip"));
+  tray?.setContextMenu(buildTrayMenu());
+}
+
 function buildTrayMenu() {
   return Menu.buildFromTemplate([
-    { label: pinned ? "Unpin panel" : "Pin panel open", click: () => setPinned(!pinned) },
-    { label: "Show", click: () => win?.show() },
-    { label: "Hide", click: () => win?.hide() },
-    { label: "Center at top", click: () => place(true) },
+    { label: t(pinned ? "unpin" : "pin"), click: () => setPinned(!pinned) },
+    { label: t("show"), click: () => win?.show() },
+    { label: t("hide"), click: () => win?.hide() },
+    { label: t("center"), click: () => place(true) },
     { type: "separator" },
     {
-      label: "Mute sounds",
+      label: t("mute"),
       type: "checkbox",
       checked: muted,
       click: (mi) => {
@@ -635,27 +693,35 @@ function buildTrayMenu() {
       },
     },
     {
-      label: "Theme",
+      label: t("theme"),
       submenu: [
-        { label: "Notch", type: "radio", checked: theme === "notch", click: () => setTheme("notch") },
-        { label: "Midnight", type: "radio", checked: theme === "midnight", click: () => setTheme("midnight") },
-        { label: "Mono", type: "radio", checked: theme === "mono", click: () => setTheme("mono") },
+        { label: t("themeNotch"), type: "radio", checked: theme === "notch", click: () => setTheme("notch") },
+        { label: t("themeMidnight"), type: "radio", checked: theme === "midnight", click: () => setTheme("midnight") },
+        { label: t("themeMono"), type: "radio", checked: theme === "mono", click: () => setTheme("mono") },
       ],
     },
     {
-      label: "Launch at login",
+      label: t("lang"),
+      submenu: [
+        { label: t("langSystem"), type: "radio", checked: lang === "system", click: () => setLang("system") },
+        { label: "English", type: "radio", checked: lang === "en", click: () => setLang("en") },
+        { label: "Русский", type: "radio", checked: lang === "ru", click: () => setLang("ru") },
+      ],
+    },
+    {
+      label: t("launch"),
       type: "checkbox",
       checked: app.getLoginItemSettings().openAtLogin,
       click: (mi) => app.setLoginItemSettings({ openAtLogin: mi.checked, args: ["--hidden"] }),
     },
     { type: "separator" },
-    { label: "Quit", click: () => app.quit() },
+    { label: t("quit"), click: () => app.quit() },
   ]);
 }
 
 function createTray() {
   tray = new Tray(path.join(DIR, "tray.png"));
-  tray.setToolTip("OpenCode notch");
+  tray.setToolTip(t("tip"));
   tray.setContextMenu(buildTrayMenu());
   tray.on("click", () => {
     win?.show();
@@ -671,6 +737,7 @@ function ipcWire() {
       pinned,
       muted,
       theme,
+      lang: resolveLang(),
       hover: hoverState,
       models: Object.fromEntries(S.models),
       sessions: [...S.sessions.values()].map((s) => ({ ...s })),

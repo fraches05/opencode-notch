@@ -47,7 +47,8 @@ No plugins, no hooks, no config files in your project. The notch talks to the lo
 - **Filter** — type to narrow a long session list.
 - **Multi-monitor + position memory** — remembers where you dragged it, per display.
 - **Three themes** — Notch, Midnight and Mono, picked from the tray menu and remembered across restarts.
-- **Tray icon** — Show / Hide, Pin, Center at top, Mute sounds, Theme, Launch at login, Quit.
+- **Two languages** — English and Russian UI, picked from the tray menu, "System" by default.
+- **Tray icon** — Show / Hide, Pin, Center at top, Mute sounds, Theme, Language, Launch at login, Quit.
 - **Autostart** — optional "launch at login", starts hidden until something needs you.
 
 ## Screenshots
@@ -116,9 +117,10 @@ Or just double-click **`start-notch.cmd`** — it installs dependencies on first
 | Stop a run | The `■` button on a running row |
 | Mute the chime | Speaker icon, or tray → **Mute sounds** |
 | Change the theme | Tray icon → **Theme** → **Notch** / **Midnight** / **Mono** |
+| Change the language | Tray icon → **Language** → **System** / **English** / **Русский** |
 | Start with Windows | Tray icon → **Launch at login** |
 
-Settings live in `%APPDATA%\OpenCode Notch\notch.json` (position, pinned, muted, theme, autostart).
+Settings live in `%APPDATA%\OpenCode Notch\notch.json` (position, pinned, muted, theme, language, autostart).
 
 ## How it works
 
