@@ -46,6 +46,7 @@ No plugins, no hooks, no config files in your project. The notch talks to the lo
 - **Multiple sessions** — status dots per session: running, waiting for you, done, error, retry.
 - **Filter** — type to narrow a long session list.
 - **Multi-monitor + position memory** — remembers where you dragged it, per display.
+- **Finish confirmation** — a Face ID-style card slides in when a run ends: elapsed time, cost and tokens, a soft chime, gone in four seconds.
 - **Three themes** — Notch, Midnight and Mono, picked from the tray menu and remembered across restarts.
 - **Two languages** — English and Russian UI, picked from the tray menu, "System" by default.
 - **Tray icon** — Show / Hide, Pin, Center at top, Mute sounds, Theme, Language, Launch at login, Quit.

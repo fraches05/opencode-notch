@@ -11,6 +11,7 @@ const hstats = document.getElementById("hstats");
 const permslot = document.getElementById("permslot");
 const rowsEl = document.getElementById("rows");
 const formsEl = document.getElementById("forms");
+const doneslot = document.getElementById("doneslot");
 const sumEl = document.getElementById("sum");
 const input = document.getElementById("in");
 const filterEl = document.getElementById("filt");
@@ -30,6 +31,11 @@ let pinned = false;
 let muted = false;
 const seenPerms = new Set();
 const seenForms = new Set();
+
+/* ---------------- done cards ---------------- */
+const doneSeen = new Set(); // `${id}:${doneAt}` — one card per finished run
+let doneCards = []; // { id, err, title, meta, until }
+const DONE_MS = 4200; // how long the confirmation stays up
 
 /* ---------------- i18n ---------------- */
 let lang = "en"; // "en" | "ru" — resolved in main (system locale when set to "system")
@@ -70,6 +76,9 @@ const STR = {
     matches: "{n} {match}",
     fillRequired: "fill required",
     retryBtn: "✕ retry",
+    done: "Done",
+    doneErr: "Stopped",
+    tok: "tok",
     sessionsOne: "session",
     sessionsFew: "sessions",
     sessionsMany: "sessions",
@@ -116,6 +125,9 @@ const STR = {
     matches: "{n} {match}",
     fillRequired: "заполните поля",
     retryBtn: "✕ повторить",
+    done: "Готово",
+    doneErr: "Остановлено",
+    tok: "ток",
     sessionsOne: "сессия",
     sessionsFew: "сессии",
     sessionsMany: "сессий",
@@ -241,6 +253,28 @@ function beep() {
   } catch {}
 }
 
+/* a softer, higher pair for "the run finished" */
+function chime() {
+  if (muted) return;
+  try {
+    const ac = new (window.AudioContext || window.webkitAudioContext)();
+    const t0 = ac.currentTime;
+    for (const [f, d] of [[659.25, 0], [987.77, 0.1]]) {
+      const o = ac.createOscillator();
+      const g = ac.createGain();
+      o.type = "sine";
+      o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t0 + d);
+      g.gain.exponentialRampToValueAtTime(0.11, t0 + d + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.32);
+      o.connect(g).connect(ac.destination);
+      o.start(t0 + d);
+      o.stop(t0 + d + 0.34);
+    }
+    setTimeout(() => ac.close().catch(() => {}), 900);
+  } catch {}
+}
+
 /* ---------------- forms ---------------- */
 const formVals = new Map(); // `${formID}:${key}` -> value
 let lastFormSig = "";
@@ -360,6 +394,63 @@ function activityLine(s) {
   return s.lastTool ? { text: s.lastTool, cls: "", mark: "…" } : null;
 }
 
+/* ---------------- done confirmation ---------------- */
+function queueDone(s) {
+  /* typing in the panel: the card would push the input out from under the
+     cursor, so keep the chime and skip the visual */
+  if (["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement?.tagName)) {
+    chime();
+    return;
+  }
+  const dur = s.since && s.doneAt ? s.doneAt - s.since : 0;
+  const tok = totalTokens(s);
+  const cost = fmtCost(s.cost ?? 0);
+  const meta = [dur > 0 ? fmtElapsed(dur) : null, cost || null, tok ? `${fmtTok(tok)} ${t("tok")}` : null]
+    .filter(Boolean)
+    .join(" · ");
+  doneCards.push({
+    id: `${s.id}:${s.doneAt}`,
+    err: !!s.error,
+    title: s.title || t("untitled"),
+    meta,
+    until: Date.now() + DONE_MS,
+  });
+  doneCards = doneCards.slice(-2);
+  dismissed = false;
+  chime();
+  render();
+  requestAnimationFrame(measure);
+  setTimeout(() => {
+    render();
+    requestAnimationFrame(measure);
+  }, DONE_MS + 60);
+}
+
+let lastDoneSig = "";
+function doneHTML(c) {
+  const icon = c.err
+    ? '<path class="dk" d="M14.5 14.5l11 11M25.5 14.5l-11 11"/>'
+    : '<path class="dk" d="M13.5 20.8l6 6 11.5-13"/>';
+  const left = Math.max(200, c.until - Date.now());
+  return `<div class="dcard${c.err ? " err" : ""}" data-ddone="${esc(c.id)}">
+  <div class="dico"><svg viewBox="0 0 40 40" aria-hidden="true"><circle class="dr" cx="20" cy="20" r="18"/>${icon}</svg></div>
+  <div class="dtxt">
+    <div class="dttl">${esc(t(c.err ? "doneErr" : "done"))}</div>
+    <div class="dsub">${esc(c.title)}</div>
+    ${c.meta ? `<div class="dmeta">${esc(c.meta)}</div>` : ""}
+  </div>
+  <div class="dtime"><i style="animation-duration:${left}ms"></i></div>
+</div>`;
+}
+
+function renderDone() {
+  doneCards = doneCards.filter((c) => c.until > Date.now());
+  const sig = doneCards.map((c) => c.id).join("|");
+  if (sig === lastDoneSig) return;
+  lastDoneSig = sig;
+  doneslot.innerHTML = doneCards.map(doneHTML).join("");
+}
+
 /* ---------------- rendering ---------------- */
 function render() {
   if (!snap) return;
@@ -377,8 +468,12 @@ function render() {
   muteBtn.title = t("muteTitle");
   closeBtn.title = t("closeTitle");
 
+  /* finished-run confirmation */
+  renderDone();
+
   const fq = filter.trim().toLowerCase();
   const all = (snap.sessions ?? [])
+    .filter((s) => !doneCards.some((c) => c.id === `${s.id}:${s.doneAt}`))
     .filter((s) => s.status !== "idle" || (s.doneAt && now - s.doneAt < 45 * 60e3) || permed.has(s.id))
     .filter(
       (s) =>
@@ -395,7 +490,7 @@ function render() {
   const active = all.slice(0, maxRows);
 
   const focused = ["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement?.tagName);
-  const expanded = !dismissed && (pinned || hover || perms.length > 0 || forms.length > 0 || focused);
+  const expanded = !dismissed && (pinned || hover || perms.length > 0 || forms.length > 0 || focused || doneCards.length > 0);
   frame.classList.toggle("ex", expanded);
 
   if (!target || !active.some((s) => s.id === target)) target = active[0]?.id ?? null;
@@ -526,10 +621,12 @@ function measure() {
 
 /* ---------------- events ---------------- */
 notch.state((s) => {
+  const freshDone = [];
   if (!rendered) {
     rendered = true;
     for (const p of s.permissions ?? []) seenPerms.add(p.id);
     for (const f of s.forms ?? []) seenForms.add(f.id);
+    for (const x of s.sessions ?? []) if (x.status === "idle" && x.doneAt) doneSeen.add(`${x.id}:${x.doneAt}`);
   } else {
     for (const p of s.permissions ?? []) {
       if (!seenPerms.has(p.id)) {
@@ -543,11 +640,21 @@ notch.state((s) => {
         beep();
       }
     }
+    /* a run that just went idle gets a confirmation card */
+    const nowMs = Date.now();
+    for (const x of s.sessions ?? []) {
+      if (x.status !== "idle" || !x.doneAt) continue;
+      const k = `${x.id}:${x.doneAt}`;
+      if (doneSeen.has(k)) continue;
+      doneSeen.add(k);
+      if (nowMs - x.doneAt < 20e3) freshDone.push(x);
+    }
   }
   snap = s;
   window._snap = s;
   if (typeof s.hover === "boolean") hover = s.hover;
   render();
+  for (const x of freshDone) queueDone(x);
   requestAnimationFrame(measure);
 });
 notch.ready().then((ok) => {
@@ -639,6 +746,13 @@ formsEl.addEventListener("change", (e) => {
 });
 
 document.addEventListener("click", async (e) => {
+  const doneCard = e.target.closest("[data-ddone]");
+  if (doneCard) {
+    doneCards = doneCards.filter((c) => c.id !== doneCard.dataset.ddone);
+    render();
+    requestAnimationFrame(measure);
+    return;
+  }
   const ext = e.target.closest("[data-furl]");
   if (ext) {
     notch.openExternal(ext.dataset.furl);
