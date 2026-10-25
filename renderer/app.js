@@ -249,6 +249,7 @@ function render() {
   pinned = !!snap.pinned;
   muted = !!snap.muted;
   document.body.classList.toggle("atop", !!snap.atTop);
+  document.body.dataset.theme = snap.theme || "notch";
 
   const fq = filter.trim().toLowerCase();
   const all = (snap.sessions ?? [])

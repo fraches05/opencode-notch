@@ -408,6 +408,7 @@ const send = () => {
       ts: Date.now(),
       pinned,
       muted,
+      theme,
       atTop,
       hover: hoverState,
       models: Object.fromEntries(S.models),
@@ -492,7 +493,10 @@ let anchorX = null; // horizontal centre, DIP screen coords
 let anchorY = null; // top edge, DIP screen coords
 let muted = false; // silence the permission beep
 let pinned = false; // keep the panel open regardless of hover
+let theme = "notch"; // notch | midnight | mono
 let syncing = false; // true while our own setBounds moves the window
+
+const THEMES = ["notch", "midnight", "mono"];
 
 const CFG_PATH = path.join(app.getPath("userData"), "notch.json");
 function loadPrefs() {
@@ -504,6 +508,7 @@ function loadPrefs() {
     }
     muted = !!c.muted;
     pinned = !!c.pinned;
+    if (THEMES.includes(c.theme)) theme = c.theme;
   } catch {}
 }
 let saveT = null;
@@ -512,7 +517,7 @@ function savePrefs() {
   saveT = setTimeout(() => {
     try {
       fs.mkdirSync(path.dirname(CFG_PATH), { recursive: true });
-      fs.writeFileSync(CFG_PATH, JSON.stringify({ anchorX, anchorY, muted, pinned }, null, 2));
+      fs.writeFileSync(CFG_PATH, JSON.stringify({ anchorX, anchorY, muted, pinned, theme }, null, 2));
     } catch {}
   }, 400);
 }
@@ -604,6 +609,14 @@ function setPinned(v) {
   tray?.setContextMenu(buildTrayMenu());
 }
 
+function setTheme(v) {
+  if (!THEMES.includes(v) || v === theme) return;
+  theme = v;
+  savePrefs();
+  send();
+  tray?.setContextMenu(buildTrayMenu());
+}
+
 function buildTrayMenu() {
   return Menu.buildFromTemplate([
     { label: pinned ? "Unpin panel" : "Pin panel open", click: () => setPinned(!pinned) },
@@ -620,6 +633,14 @@ function buildTrayMenu() {
         savePrefs();
         send();
       },
+    },
+    {
+      label: "Theme",
+      submenu: [
+        { label: "Notch", type: "radio", checked: theme === "notch", click: () => setTheme("notch") },
+        { label: "Midnight", type: "radio", checked: theme === "midnight", click: () => setTheme("midnight") },
+        { label: "Mono", type: "radio", checked: theme === "mono", click: () => setTheme("mono") },
+      ],
     },
     {
       label: "Launch at login",
@@ -649,6 +670,7 @@ function ipcWire() {
       ts: Date.now(),
       pinned,
       muted,
+      theme,
       hover: hoverState,
       models: Object.fromEntries(S.models),
       sessions: [...S.sessions.values()].map((s) => ({ ...s })),

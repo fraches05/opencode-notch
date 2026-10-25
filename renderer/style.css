@@ -5,11 +5,72 @@
   --red: #ff6b6b;
   --bg: #07080c;
   --bg2: #0c0e14;
+  --bg-top: #101218;
+  --panel-top: #0b0d12;
   --line: rgba(255, 255, 255, 0.07);
   --line2: rgba(255, 255, 255, 0.11);
   --txt: #f2f4f8;
+  --label: rgba(242, 244, 248, 0.62);
   --dim: rgba(242, 244, 248, 0.5);
   --dim2: rgba(242, 244, 248, 0.34);
+  --tool: #a7b6ff;
+  --mint-hover: #6ee7b0;
+  --focus: rgba(111, 198, 255, 0.35);
+  --mint-focus: rgba(61, 220, 151, 0.4);
+  --mint-border: rgba(61, 220, 151, 0.26);
+  --mint-bg: rgba(61, 220, 151, 0.06);
+  --mint-ink: #04211a;
+}
+
+/* ---------- themes (tray → Theme) ---------- */
+body[data-theme="midnight"] {
+  --busy: #4d9fff;
+  --att: #ffbd2e;
+  --mint: #2fe0a0;
+  --red: #ff4d7d;
+  --bg: #04050d;
+  --bg2: #0a0d1a;
+  --bg-top: #0b0e1c;
+  --panel-top: #070a16;
+  --line: rgba(120, 160, 255, 0.12);
+  --line2: rgba(120, 160, 255, 0.18);
+  --txt: #eef2ff;
+  --label: rgba(238, 242, 255, 0.64);
+  --dim: rgba(238, 242, 255, 0.52);
+  --dim2: rgba(238, 242, 255, 0.34);
+  --tool: #8fb0ff;
+  --mint-hover: #5cf0bd;
+  --focus: rgba(77, 159, 255, 0.42);
+  --mint-focus: rgba(47, 224, 160, 0.42);
+  --mint-border: rgba(47, 224, 160, 0.3);
+  --mint-bg: rgba(47, 224, 160, 0.07);
+  --mint-ink: #032219;
+}
+
+body[data-theme="mono"] .sdot.err { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12); }
+
+body[data-theme="mono"] {
+  --busy: #d5d9e0;
+  --att: #ffc043;
+  --mint: #b9c0ca;
+  --red: #8d949f;
+  --bg: #08080a;
+  --bg2: #141417;
+  --bg-top: #131316;
+  --panel-top: #0d0d10;
+  --line: rgba(255, 255, 255, 0.09);
+  --line2: rgba(255, 255, 255, 0.14);
+  --txt: #f2f2f4;
+  --label: rgba(242, 242, 244, 0.6);
+  --dim: rgba(242, 242, 244, 0.52);
+  --dim2: rgba(242, 242, 244, 0.34);
+  --tool: #b8bec8;
+  --mint-hover: #d5dae2;
+  --focus: rgba(255, 255, 255, 0.28);
+  --mint-focus: rgba(255, 255, 255, 0.28);
+  --mint-border: rgba(255, 255, 255, 0.16);
+  --mint-bg: rgba(255, 255, 255, 0.05);
+  --mint-ink: #101014;
 }
 
 * { box-sizing: border-box; -webkit-app-region: no-drag; user-select: none; }
@@ -38,7 +99,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   width: 226px;
   height: 38px;
   padding: 0 15px;
-  background: linear-gradient(180deg, #101218 0%, var(--bg) 100%);
+  background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg) 100%);
   border: 1px solid var(--line);
   border-radius: 19px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
@@ -56,7 +117,7 @@ body.atop #panel { border-radius: 0 0 18px 18px; border-top-color: transparent; 
   font-weight: 700;
   letter-spacing: 1.7px;
   text-transform: uppercase;
-  color: rgba(242, 244, 248, 0.62);
+  color: var(--label);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -91,7 +152,7 @@ body.atop #panel { border-radius: 0 0 18px 18px; border-top-color: transparent; 
   max-height: 640px;
   overflow-y: auto;
   overflow-x: hidden;
-  background: linear-gradient(180deg, #0b0d12 0%, var(--bg) 65%);
+  background: linear-gradient(180deg, var(--panel-top) 0%, var(--bg) 65%);
   border: 1px solid var(--line);
   border-radius: 18px;
   padding: 11px 13px 12px;
@@ -153,7 +214,7 @@ body.atop #panel { border-radius: 0 0 18px 18px; border-top-color: transparent; 
   user-select: text;
 }
 #filt::placeholder { color: var(--dim2); }
-#filt:focus { border-color: rgba(111, 198, 255, 0.35); background: rgba(255, 255, 255, 0.06); }
+#filt:focus { border-color: var(--focus); background: rgba(255, 255, 255, 0.06); }
 
 #ifnote { font-size: 11.5px; color: var(--dim); padding: 5px 2px 9px; }
 
@@ -265,7 +326,7 @@ body.atop #panel { border-radius: 0 0 18px 18px; border-top-color: transparent; 
 }
 .l2 .lmeta > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; flex: 0 100 auto; }
 .l2 .lmeta .sep { flex: none; }
-.l2 .stool { color: #a7b6ff; }
+.l2 .stool { color: var(--tool); }
 .l2 .cost { flex: none; margin-left: auto; color: var(--dim2); font-variant-numeric: tabular-nums; }
 .l2 .sep { flex: none; color: var(--dim2); }
 
@@ -333,8 +394,8 @@ body.atop #panel { border-radius: 0 0 18px 18px; border-top-color: transparent; 
 
 /* ---------- form cards ---------- */
 .fcard {
-  border: 1px solid rgba(61, 220, 151, 0.26);
-  background: rgba(61, 220, 151, 0.06);
+  border: 1px solid var(--mint-border);
+  background: var(--mint-bg);
   border-radius: 12px;
   padding: 10px 12px;
   margin-bottom: 7px;
@@ -369,15 +430,15 @@ body.atop #panel { border-radius: 0 0 18px 18px; border-top-color: transparent; 
   outline: none;
   user-select: text;
 }
-.frow input:focus, .frow select:focus { border-color: rgba(61, 220, 151, 0.4); background: rgba(255, 255, 255, 0.07); }
+.frow input:focus, .frow select:focus { border-color: var(--mint-focus); background: rgba(255, 255, 255, 0.07); }
 .frow .fmulti { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; }
 .frow .fmulti label { display: flex; align-items: center; gap: 5px; color: rgba(242, 244, 248, 0.75); font-size: 11px; min-width: 0; }
 .fcheck { display: flex; align-items: center; gap: 7px; font-size: 11.5px; color: rgba(242, 244, 248, 0.82); }
 .fcheck input { accent-color: var(--mint); flex: none; }
 .factions { display: flex; gap: 6px; margin-top: 10px; }
 .factions button { border-radius: 7px; padding: 5px 13px; font-size: 11.5px; font-weight: 600; }
-.factions .fsend { background: var(--mint); color: #04211a; }
-.factions .fsend:hover { background: #6ee7b0; }
+.factions .fsend { background: var(--mint); color: var(--mint-ink); }
+.factions .fsend:hover { background: var(--mint-hover); }
 .factions .fsend:disabled { opacity: 0.4; cursor: default; }
 .fext { color: var(--busy); font-size: 11px; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fext:hover { text-decoration: underline; }
@@ -386,7 +447,7 @@ body.atop #panel { border-radius: 0 0 18px 18px; border-top-color: transparent; 
 .fstrip {
   font-size: 11px;
   color: var(--mint);
-  border: 1px dashed rgba(61, 220, 151, 0.35);
+  border: 1px dashed var(--mint-border);
   border-radius: 9px;
   padding: 6px 10px;
   margin-bottom: 6px;
@@ -410,9 +471,20 @@ body.atop #panel { border-radius: 0 0 18px 18px; border-top-color: transparent; 
   user-select: text;
 }
 #in::placeholder { color: var(--dim2); }
-#in:focus { border-color: rgba(111, 198, 255, 0.4); background: rgba(255, 255, 255, 0.07); }
+#in:focus { border-color: var(--focus); background: rgba(255, 255, 255, 0.07); }
 
 #frame.ex #panel::-webkit-scrollbar { width: 7px; }
 #frame.ex #panel::-webkit-scrollbar-track { background: transparent; }
 #frame.ex #panel::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 99px; }
 #frame.ex #panel::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.18); }
+
+/* Accessibility: the notch is a passive overlay, so motion is decorative. */
+@media (prefers-reduced-motion: reduce) {
+  .sdot { animation: none !important; }
+  .bfill { transition: none; }
+}
+
+/* Keep the pill/panel edge visible when Windows forces a color scheme. */
+@media (forced-colors: active) {
+  #pill, #panel { border: 1px solid CanvasText; }
+}
