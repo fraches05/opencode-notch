@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>OpenCode Notch — a macOS-style notch for Windows</title>
-<meta name="description" content="A macOS-style notch for Windows that watches your OpenCode sessions: approvals, forms, live agent activity and context usage at the top of your screen." />
+<meta name="description" content="A macOS-style notch for Windows that watches your OpenCode sessions: approvals, forms, live agent activity, a finish card, three themes and an English / Russian interface." />
 <meta property="og:title" content="OpenCode Notch" />
 <meta property="og:description" content="Your agents live in the notch. Approvals, forms and live activity for OpenCode sessions on Windows." />
 <meta property="og:image" content="https://fraches05.github.io/opencode-notch/icon.png" />
@@ -53,6 +53,8 @@
   h1 { font-size: clamp(34px, 5.4vw, 56px); letter-spacing: -1.4px; line-height: 1.08; margin: 26px 0 0; }
   .sub { color: var(--dim); font-size: 18px; max-width: 620px; margin: 16px auto 0; }
   .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 30px; }
+  .ver { color: var(--dim); font-size: 13px; margin: 16px 0 0; }
+  .ver b { color: var(--mint); }
   .btn {
     display: inline-flex; align-items: center; gap: 9px;
     padding: 12px 22px; border-radius: 11px; font-weight: 600; font-size: 15px;
@@ -81,6 +83,9 @@
   .shots figure { margin: 0; }
   .shots img { width: 100%; border-radius: 12px; border: 1px solid var(--line); display: block; }
   .shots figcaption { color: var(--dim); font-size: 13px; margin-top: 8px; text-align: center; }
+  .shots figcaption b { color: var(--text); }
+  .sub-h { font-size: 17px; margin: 40px 0 14px; letter-spacing: -.2px; }
+  .themes { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
 
   ol.steps { counter-reset: s; list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
   ol.steps li { position: relative; padding-left: 44px; color: var(--dim); }
@@ -112,6 +117,7 @@
       <a href="https://github.com/fraches05/opencode-notch">GitHub</a>
       <a href="https://github.com/fraches05/opencode-notch/releases"><span data-en>Download</span><span data-ru>Скачать</span></a>
       <a href="https://github.com/fraches05/opencode-notch/issues"><span data-en>Issues</span><span data-ru>Проблемы</span></a>
+      <a href="https://t.me/mrsdsxp">Telegram</a>
       <span class="sp lang">
         <a href="#" id="toggle">English · <span style="opacity:.55">Русский</span></a>
       </span>
@@ -127,7 +133,9 @@
           <span data-en>Download for Windows</span><span data-ru>Скачать для Windows</span>
         </a>
         <a class="btn" href="https://github.com/fraches05/opencode-notch">★ <span data-en>Star on GitHub</span><span data-ru>Звезда на GitHub</span></a>
+        <a class="btn" href="https://t.me/mrsdsxp">✈ Telegram</a>
       </div>
+      <p class="ver"><b>v0.2.0</b> · <span data-en>three themes, English / Русский, finish card, installer</span><span data-ru>три темы, English / Русский, карточка завершения, установщик</span></p>
       <div class="hero-shot">
         <img src="demo.gif" alt="Panel expanding from the notch" />
       </div>
@@ -147,7 +155,10 @@
       <div class="card"><h3><span class="dot d-mint"></span><span data-en>Forms</span><span data-ru>Формы</span></h3><p data-en>Agent questions rendered as real inputs: selects, checkboxes, validation.</p><p data-ru>Вопросы агента как настоящие поля: списки, чекбоксы, валидация.</p></div>
       <div class="card"><h3><span class="dot d-busy"></span><span data-en>Context usage</span><span data-ru>Расход контекста</span></h3><p data-en>Per-session token usage and percentage of the model window, updated live.</p><p data-ru>Токены и процент окна модели по каждой сессии, в реальном времени.</p></div>
       <div class="card"><h3><span class="dot d-mint"></span><span data-en>Quick reply</span><span data-ru>Быстрый ответ</span></h3><p data-en>Type the next instruction without leaving what you were doing.</p><p data-ru>Напишите следующую инструкцию, не переключая окно.</p></div>
-      <div class="card"><h3><span class="dot d-att"></span><span data-en>Stays out of the way</span><span data-ru>Не мешает</span></h3><p data-en>Collapsed to a pill, expands on hover, stays where you drag it.</p><p data-ru>Свёрнут в пилюлю, раскрывается при наведении, остаётся там, куда перетащили.</p></div>
+      <div class="card"><h3><span class="dot d-mint"></span><span data-en>Finish card</span><span data-ru>Карточка завершения</span></h3><p data-en>A Face ID-style confirmation when a run ends: time, cost, tokens, gone in four seconds.</p><p data-ru>Подтверждение в стиле Face ID: время, стоимость, токены — исчезает через четыре секунды.</p></div>
+      <div class="card"><h3><span class="dot d-busy"></span><span data-en>Themes & language</span><span data-ru>Темы и язык</span></h3><p data-en>Notch, Midnight or Mono, and a full English / Русский interface, both picked from the tray.</p><p data-ru>Notch, Midnight или Mono и полный English / Русский интерфейс — всё в меню трея.</p></div>
+      <div class="card"><h3><span class="dot d-att"></span><span data-en>Update nudge</span><span data-ru>Плашка обновления</span></h3><p data-en>New releases show up as a card with Download / Later. Never forced, never a modal.</p><p data-ru>Новые релизы появляются карточкой со «Скачать» / «Позже». Не навязчиво и без модалок.</p></div>
+      <div class="card"><h3><span class="dot d-mint"></span><span data-en>Stays out of the way</span><span data-ru>Не мешает</span></h3><p data-en>Collapsed to a pill, expands on hover, stays where you drag it.</p><p data-ru>Свёрнут в пилюлю, раскрывается при наведении, остаётся там, куда перетащили.</p></div>
     </div>
   </div>
 </section>
@@ -160,6 +171,15 @@
       <figure><img src="screenshots/panel.png" alt="Approval request" /><figcaption data-en>An approval waiting for you</figcaption><figcaption data-ru>Подтверждение ждёт вас</figcaption></figure>
       <figure><img src="screenshots/sessions.png" alt="Sessions" /><figcaption data-en>Three sessions, one finished</figcaption><figcaption data-ru>Три сессии, одна завершена</figcaption></figure>
       <figure><img src="screenshots/form.png" alt="Form" /><figcaption data-en>A form answered inside the notch</figcaption><figcaption data-ru>Форма, заполненная прямо в notch</figcaption></figure>
+      <figure><img src="screenshots/finish.png" alt="Finish confirmation" /><figcaption data-en>A run just finished</figcaption><figcaption data-ru>Запуск только что закончился</figcaption></figure>
+      <figure><img src="screenshots/update-offer.png" alt="Update offer" /><figcaption data-en>A new release, offered not forced</figcaption><figcaption data-ru>Новый релиз — предлагаем, не навязываем</figcaption></figure>
+    </div>
+    <h3 class="sub-h" data-en>Three themes</h3>
+    <h3 class="sub-h" data-ru>Три темы</h3>
+    <div class="shots themes">
+      <figure><img src="screenshots/theme-notch.png" alt="Notch theme" /><figcaption><b>Notch</b> — <span data-en>green accent, the default</span><span data-ru>зелёный акцент, по умолчанию</span></figcaption></figure>
+      <figure><img src="screenshots/theme-midnight.png" alt="Midnight theme" /><figcaption><b>Midnight</b> — <span data-en>colder base, brighter dots</span><span data-ru>холоднее база, ярче точки</span></figcaption></figure>
+      <figure><img src="screenshots/theme-mono.png" alt="Mono theme" /><figcaption><b>Mono</b> — <span data-en>greyscale, colour only for alerts</span><span data-ru>грейскейл, цвет только у алертов</span></figcaption></figure>
     </div>
   </div>
 </section>
@@ -169,9 +189,9 @@
     <h2 data-en>Install</h2>
     <h2 data-ru>Установка</h2>
     <ol class="steps">
-      <li><b data-en>Download the zip</b><b data-ru>Скачайте zip</b><br /><span data-en>From the <a href="https://github.com/fraches05/opencode-notch/releases">Releases page</a>.</span><span data-ru>Со страницы <a href="https://github.com/fraches05/opencode-notch/releases">Releases</a>.</span></li>
-      <li><b data-en>Unzip anywhere</b><b data-ru>Распакуйте куда угодно</b><br /><span data-en>For example to <code>Desktop\OpenCode Notch</code>. Nothing is installed system-wide.</span><span data-ru>Например в <code>Desktop\OpenCode Notch</code>. В систему ничего не ставится.</span></li>
-      <li><b data-en>Run OpenCode Notch.exe</b><b data-ru>Запустите OpenCode Notch.exe</b><br /><span data-en>The black capsule appears at the top of your screen. Hover it to open.</span><span data-ru>Чёрная капсула появится сверху экрана. Наведите — раскроется.</span></li>
+      <li><b data-en>Download the installer</b><b data-ru>Скачайте установщик</b><br /><span data-en><code>OpenCodeNotch-Setup-0.2.0.exe</code> from the <a href="https://github.com/fraches05/opencode-notch/releases">Releases page</a>.</span><span data-ru><code>OpenCodeNotch-Setup-0.2.0.exe</code> со страницы <a href="https://github.com/fraches05/opencode-notch/releases">Releases</a>.</span></li>
+      <li><b data-en>Run it</b><b data-ru>Запустите его</b><br /><span data-en>Installs for your user only — no admin prompt — and adds Start-menu and desktop shortcuts.</span><span data-ru>Ставится только для вашего пользователя — без прав администратора — и добавляет ярлыки в «Пуск» и на рабочий стол.</span></li>
+      <li><b data-en>Hover the capsule</b><b data-ru>Наведите на капсулу</b><br /><span data-en>The black capsule appears at the top of your screen. Prefer portable? Grab the zip instead and unzip anywhere.</span><span data-ru>Чёрная капсула появится сверху экрана. Нужен портативный вариант — берите zip и распакуйте куда угодно.</span></li>
     </ol>
     <div class="note" data-en>Windows may warn that the app is unsigned: click <b>More info → Run anyway</b>. Build it yourself with <code>npm start</code> if you prefer.</div>
     <div class="note" data-ru>Windows может предупредить, что приложение без подписи: нажмите <b>Подробнее → Выполнить в любом случае</b>. Можно собрать самому через <code>npm start</code>.</div>
@@ -183,6 +203,8 @@
     <p>
       <a href="https://github.com/fraches05/opencode-notch">GitHub</a> ·
       <a href="https://github.com/fraches05/opencode-notch/releases">Releases</a> ·
+      <a href="https://github.com/fraches05/opencode-notch/blob/main/CHANGELOG.md">Changelog</a> ·
+      <a href="https://t.me/mrsdsxp">Telegram</a> ·
       <a href="https://github.com/fraches05/opencode-notch/blob/main/README.ru.md">README (RU)</a> ·
       MIT
     </p>

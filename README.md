@@ -12,8 +12,9 @@ Approvals, forms, live agent activity and context usage, always one glance away 
 [![OpenCode](https://img.shields.io/badge/OpenCode-2.x-111111?style=flat-square)](https://opencode.ai)
 [![Electron](https://img.shields.io/badge/Electron-45-47848F?style=flat-square)](https://www.electronjs.org)
 [![License](https://img.shields.io/badge/license-MIT-3DA639?style=flat-square)](LICENSE)
+[![Telegram](https://img.shields.io/badge/telegram-%40mrsdsxp-2AABEE?style=flat-square&logo=telegram&logoColor=white)](https://t.me/mrsdsxp)
 
-[Download](#install) · [Website](https://fraches05.github.io/opencode-notch/) · [Features](#features) · [How it works](#how-it-works) · [Troubleshooting](#troubleshooting)
+[Download](#install) · [Website](https://fraches05.github.io/opencode-notch/) · [Features](#features) · [How it works](#how-it-works) · [Troubleshooting](#troubleshooting) · [Chat](https://t.me/mrsdsxp)
 
 **English** · [Русский](README.ru.md)
 
@@ -47,6 +48,8 @@ No plugins, no hooks, no config files in your project. The notch talks to the lo
 - **Filter** — type to narrow a long session list.
 - **Multi-monitor + position memory** — remembers where you dragged it, per display.
 - **Finish confirmation** — a Face ID-style card slides in when a run ends: elapsed time, cost and tokens, a soft chime, gone in four seconds.
+- **Windows notifications** — a native toast when a long run (20 s+) ends while the notch is hidden or your cursor is elsewhere. Toggle it in the tray.
+- **Update nudge, never a nag** — the notch checks GitHub for a newer release and offers *Download* / *Later*. "Later" remembers the version it told you about, and the offer never expands the panel on its own.
 - **Three themes** — Notch, Midnight and Mono, picked from the tray menu and remembered across restarts.
 - **Two languages** — English and Russian UI, picked from the tray menu, "System" by default.
 - **Tray icon** — Show / Hide, Pin, Center at top, Mute sounds, Theme, Language, Launch at login, Quit.
@@ -73,19 +76,52 @@ No plugins, no hooks, no config files in your project. The notch talks to the lo
 </tr>
 </table>
 
+### When a run finishes
+
+<img src="docs/screenshots/finish.png" alt="Finish confirmation" width="480" />
+
+### When a new release is out
+
+<img src="docs/screenshots/update-offer.png" alt="Update offer" width="480" />
+
+### Three themes
+
+<table>
+<tr>
+<td align="center" width="33%">
+<img src="docs/screenshots/theme-notch.png" alt="Notch theme" /><br />
+<sub><b>Notch</b> — green accent, the default</sub>
+</td>
+<td align="center" width="33%">
+<img src="docs/screenshots/theme-midnight.png" alt="Midnight theme" /><br />
+<sub><b>Midnight</b> — colder base, brighter dots</sub>
+</td>
+<td align="center" width="33%">
+<img src="docs/screenshots/theme-mono.png" alt="Mono theme" /><br />
+<sub><b>Mono</b> — greyscale, colour only for alerts</sub>
+</td>
+</tr>
+</table>
+
 ## Install
 
-### Option A — download the app (easiest)
+### Option A — installer (recommended)
 
-1. Open [**Releases**](../../releases/latest) and download `OpenCodeNotch-win-x64.zip`.
-2. Unzip it anywhere (for example `C:\Program Files\OpenCode Notch` or your Desktop).
+1. Open [**Releases**](../../releases/latest) and download `OpenCodeNotch-Setup-0.2.0.exe`.
+2. Run it. It installs for the current user only, so there is no UAC prompt, and it adds Start-menu and desktop shortcuts.
+3. **OpenCode Notch** starts right away — a black capsule appears at the top of your screen.
+
+The installer keeps your settings in `%APPDATA%\OpenCode Notch`, and uninstalling leaves them alone in case you come back.
+
+### Option B — portable zip
+
+1. Download `OpenCodeNotch-win-x64.zip` from the same release.
+2. Unzip it anywhere (for example `C:\Program Files\OpenCode Notch` or a USB stick).
 3. Run **`OpenCode Notch.exe`**.
 
-That is it — a black capsule appears at the top of your screen.
+> **Windows may warn you.** Neither build is code-signed, so SmartScreen shows *"Windows protected your PC"* or *"Unknown publisher"*. Click **More info → Run anyway**. The source is right here in this repository, and you can build both artifacts yourself with `npm run make` and `npm run dist`.
 
-> **Windows may warn you.** The build is not code-signed, so SmartScreen shows *"Windows protected your PC"*. Click **More info → Run anyway**. The source is right here in this repository, and you can build it yourself with `npm run dist`.
-
-### Option B — run from source
+### Option C — run from source
 
 Requires [Node.js 20+](https://nodejs.org).
 
@@ -119,9 +155,11 @@ Or just double-click **`start-notch.cmd`** — it installs dependencies on first
 | Mute the chime | Speaker icon, or tray → **Mute sounds** |
 | Change the theme | Tray icon → **Theme** → **Notch** / **Midnight** / **Mono** |
 | Change the language | Tray icon → **Language** → **System** / **English** / **Русский** |
+| Turn off finish toasts | Tray icon → **Notify when a run ends** |
+| Check for a new release | Tray icon → **Check for updates** (also runs at startup and every 6 h) |
 | Start with Windows | Tray icon → **Launch at login** |
 
-Settings live in `%APPDATA%\OpenCode Notch\notch.json` (position, pinned, muted, theme, language, autostart).
+Settings live in `%APPDATA%\OpenCode Notch\notch.json` (position, pinned, muted, theme, language, notifications, dismissed update, autostart).
 
 ## How it works
 
@@ -180,8 +218,14 @@ Not sure where to start? Good first issues:
 
 - Theme accents / compact mode variants
 - Localization
-- Packaging an installer (NSIS/MSIX) and code signing
+- Code signing, so Windows stops warning
 - Better retry/backoff telemetry in the tray tooltip
+
+## Contact
+
+- **Telegram:** [@mrsdsxp](https://t.me/mrsdsxp) — the fastest way to reach me; screenshots, half-formed ideas and "it broke" all welcome.
+- **GitHub:** [issues](https://github.com/fraches05/opencode-notch/issues) for anything that should stay searchable.
+- **Changelog:** [CHANGELOG.md](CHANGELOG.md) — what changed and when.
 
 ## Disclaimer
 
