@@ -29,7 +29,17 @@
         </button>
       </div>
       <div id="toolrow">
-        <input id="filt" type="text" spellcheck="false" placeholder="filter sessions…" />
+        <div class="searchbox"><span class="search-icon">⌕</span><input id="filt" type="text" spellcheck="false" placeholder="Search sessions…" /><kbd>Ctrl K</kbd></div>
+        <button id="paletteBtn" class="toolbtn" title="Command palette">⌘</button>
+      </div>
+      <div id="viewrow">
+        <div id="projectTabs" class="project-tabs"></div>
+        <div class="view-actions"><button id="groupBtn" class="viewbtn" type="button">Group</button><button id="archiveBtn" class="viewbtn" type="button">All</button></div>
+      </div>
+      <div id="palette" class="palette hidden" role="dialog" aria-label="Command palette">
+        <div class="palette-head"><span>Command palette</span><button id="paletteClose" type="button">Esc</button></div>
+        <input id="paletteInput" type="text" placeholder="Type a command…" spellcheck="false" />
+        <div id="paletteItems"></div>
       </div>
       <div id="permslot"></div>
       <div id="doneslot"></div>
@@ -40,6 +50,7 @@
       <div id="bar">
         <input id="in" type="text" spellcheck="false" placeholder="reply…" />
       </div>
+      <div id="toast" class="toast" role="status"></div>
     </div>
   </div>
   <script src="app.js"></script>

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0] — 2026-10-26
+
+### Global session center
+
+- **Session actions** — rename sessions, archive or restore them, and open a project directly in the OpenCode TUI.
+- **Renderer layout** — search tools, project views, grouping, command palette, and action affordances are fully localized in English and Russian.
+- **Project navigation** — filter sessions by project, switch between grouped and flat views, and optionally reveal archived sessions.
+- **Command palette** — use `Ctrl/Cmd + K` for keyboard-first control, with arrow-key session navigation.
+- **Responsive panel** — redesigned search toolbar, project tabs, contextual row actions, and compact layouts for narrow screens.
+- **Session metadata** — archive state, project grouping, and refreshed activity timestamps now stay synchronized with the OpenCode server.
+
+
 All notable changes to OpenCode Notch are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [semantic versioning](https://semver.org/spec/v2.0.0.html).

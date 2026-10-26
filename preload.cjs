@@ -6,6 +6,8 @@ contextBridge.exposeInMainWorld("notch", {
   permReply: (sessionID, requestID, decision, message) => ipcRenderer.invoke("perm:reply", { sessionID, requestID, decision, message }),
   prompt: (sessionID, text) => ipcRenderer.invoke("session:prompt", { sessionID, text }),
   interrupt: (sessionID, resume) => ipcRenderer.invoke("session:interrupt", { sessionID, resume }),
+  updateSession: (sessionID, changes) => ipcRenderer.invoke("session:update", { sessionID, ...changes }),
+  openSession: (sessionID) => ipcRenderer.invoke("session:open", sessionID),
   setSize: (w, h) => ipcRenderer.send("ui:size", { w, h }),
   hover: (cb) => ipcRenderer.on("hover", (_, v) => cb(v)),
   pin: (v) => ipcRenderer.send("ui:pin", v),

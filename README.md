@@ -45,6 +45,10 @@ No plugins, no hooks, no config files in your project. The notch talks to the lo
 - **Quick reply** — type an answer to the selected session straight from the notch.
 - **Interrupt** — stop a run from the row, without switching windows.
 - **Multiple sessions** — status dots per session: running, waiting for you, done, error, retry.
+- **Session center** — rename, archive or restore sessions, and open any project directly in the OpenCode TUI.
+- **Project views** — switch projects, group sessions by project, show archived sessions on demand, and search across metadata.
+- **Command palette** — `Ctrl/Cmd + K` opens keyboard-first commands; arrow keys move through sessions.
+- **Responsive panel** — contextual row actions and a compact layout that fits narrow screens.
 - **Filter** — type to narrow a long session list.
 - **Multi-monitor + position memory** — remembers where you dragged it, per display.
 - **Finish confirmation** — a Face ID-style card slides in when a run ends: elapsed time, cost and tokens, a soft chime, gone in four seconds.
@@ -107,7 +111,7 @@ No plugins, no hooks, no config files in your project. The notch talks to the lo
 
 ### Option A — installer (recommended)
 
-1. Open [**Releases**](../../releases/latest) and download `OpenCodeNotch-Setup-0.2.0.exe`.
+1. Open [**Releases**](../../releases/latest) and download `OpenCodeNotch-Setup-0.3.0.exe`.
 2. Run it. It installs for the current user only, so there is no UAC prompt, and it adds Start-menu and desktop shortcuts.
 3. **OpenCode Notch** starts right away — a black capsule appears at the top of your screen.
 
@@ -152,6 +156,10 @@ Or just double-click **`start-notch.cmd`** — it installs dependencies on first
 | Answer a permission | `Allow once` / `Always` / `Reject` |
 | Reply to a session | Select a row, type in the bottom field, `Enter` |
 | Stop a run | The `■` button on a running row |
+| Rename a session | Hover a row → `✎`, edit the title, press Enter |
+| Archive / restore | Hover a row → `⌁` / `↶` |
+| Open in TUI | Hover a row → `↗` |
+| Search and filter | Search field, project tabs, or `Ctrl/Cmd + K` |
 | Mute the chime | Speaker icon, or tray → **Mute sounds** |
 | Change the theme | Tray icon → **Theme** → **Notch** / **Midnight** / **Mono** |
 | Change the language | Tray icon → **Language** → **System** / **English** / **Русский** |

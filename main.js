@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain, Tray, Menu, screen, globalShortcut, shell,
 import path from "node:path";
 import fs from "node:fs";
 import os from "node:os";
+import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { Service } from "@opencode/client/service";
 
@@ -124,6 +125,7 @@ const finishTurn = (s) => {
   s.ctxAt = 0;
   s.retryNext = null;
   s.liveText = "";
+  s.updatedAt = Date.now();
   setTimeout(() => refreshContext(s.id).catch(() => {}), 900);
 };
 
@@ -318,6 +320,8 @@ async function refreshSessions() {
   for (const it of data.data ?? []) {
     const s = sess(it.id);
     s.title = it.title ?? s.title;
+    s.archived = !!it.time?.archived;
+    s.parentID = it.parentID ?? s.parentID ?? null;
     s.directory = it.location?.directory ?? s.directory;
     s.agent = it.agent ?? s.agent;
     if (it.model) {
@@ -447,6 +451,7 @@ const send = () => {
       update: updatePending() ? { ...updateInfo } : null,
       models: Object.fromEntries(S.models),
       sessions: [...S.sessions.values()].map((s) => ({ ...s, tokens: { ...s.tokens, cache: { ...s.tokens.cache } } })),
+      projects: [...new Set([...S.sessions.values()].map((s) => s.directory).filter(Boolean))],
       permissions: [...S.permissions.values()].map((p) => ({ ...p })),
       forms: [...S.forms.values()].map((f) => ({ ...f })),
     });
@@ -868,6 +873,7 @@ function ipcWire() {
       update: updatePending() ? { ...updateInfo } : null,
       models: Object.fromEntries(S.models),
       sessions: [...S.sessions.values()].map((s) => ({ ...s })),
+      projects: [...new Set([...S.sessions.values()].map((s) => s.directory).filter(Boolean))],
       permissions: [...S.permissions.values()],
       forms: [...S.forms.values()],
     });
@@ -920,6 +926,36 @@ function ipcWire() {
       return { ok: true };
     })().catch((err) => ({ ok: false, error: String(err?.message || err) })),
   );
+  ipcMain.handle("session:update", (e, a) =>
+    (async () => {
+      const { sessionID, title, archived } = a ?? {};
+      if (typeof sessionID !== "string") return { ok: false, error: "bad args" };
+      if (title !== undefined && (typeof title !== "string" || !title.trim())) return { ok: false, error: "bad title" };
+      const body = {};
+      if (title !== undefined) body.title = title.trim();
+      if (archived !== undefined) body.archived = !!archived;
+      if (!Object.keys(body).length) return { ok: false, error: "empty update" };
+      const r = await api(`/api/session/${encodeURIComponent(sessionID)}`, { method: "PATCH", body: JSON.stringify(body) });
+      if (!r.ok) throw new Error(`session update → HTTP ${r.status}`);
+      const s = sess(sessionID);
+      if (title !== undefined) s.title = title.trim();
+      if (archived !== undefined) s.archived = !!archived;
+      send();
+      return { ok: true };
+    })().catch((err) => ({ ok: false, error: String(err?.message || err) })),
+  );
+  ipcMain.handle("session:open", (e, sessionID) => {
+    const s = S.sessions.get(sessionID);
+    if (typeof sessionID !== "string" || !s?.directory) return { ok: false, error: "session directory unavailable" };
+    try {
+      const child = spawn("cmd.exe", ["/d", "/s", "/c", `start "" opencode --dir "${s.directory.replaceAll('"', '""')}"`], { detached: true, windowsHide: true, stdio: "ignore" });
+      child.unref();
+      return { ok: true };
+    } catch (err) {
+      log("open session:", err?.message || String(err));
+      return { ok: false, error: String(err?.message || err) };
+    }
+  });
   ipcMain.handle("form:reply", (e, a) =>
     (async () => {
       const { sessionID, formID, answer } = a ?? {};

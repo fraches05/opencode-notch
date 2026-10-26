@@ -19,6 +19,15 @@ const filterEl = document.getElementById("filt");
 const pinBtn = document.getElementById("pin");
 const muteBtn = document.getElementById("mute");
 const closeBtn = document.getElementById("q");
+const paletteBtn = document.getElementById("paletteBtn");
+const paletteEl = document.getElementById("palette");
+const paletteInput = document.getElementById("paletteInput");
+const paletteItems = document.getElementById("paletteItems");
+const paletteClose = document.getElementById("paletteClose");
+const projectTabs = document.getElementById("projectTabs");
+const groupBtn = document.getElementById("groupBtn");
+const archiveBtn = document.getElementById("archiveBtn");
+const toastEl = document.getElementById("toast");
 
 /* window.notch is exposed by preload (contextBridge) — do not redeclare */
 
@@ -28,6 +37,11 @@ let dismissed = false;
 let target = null;
 let rendered = false;
 let filter = "";
+let projectFilter = "*";
+let grouped = true;
+let showArchived = false;
+let paletteOpen = false;
+let paletteIndex = 0;
 let pinned = false;
 let muted = false;
 const seenPerms = new Set();
@@ -87,6 +101,22 @@ const STR = {
     sessionsOne: "session",
     sessionsFew: "sessions",
     sessionsMany: "sessions",
+    projectAll: "All projects",
+    groupOn: "Grouped",
+    groupOff: "Flat",
+    archived: "Archived",
+    showArchived: "Show archived",
+    hideArchived: "Hide archived",
+    rename: "Rename",
+    archive: "Archive",
+    unarchive: "Restore",
+    openTui: "Open TUI",
+    noSessions: "No sessions match",
+    commandPalette: "Command palette",
+    commandPlaceholder: "Type a command…",
+    renamed: "Session renamed",
+    archivedToast: "Session archived",
+    restoredToast: "Session restored",
     matchOne: "match",
     matchMany: "matches",
     approvalOne: "approval",
@@ -140,6 +170,22 @@ const STR = {
     sessionsOne: "сессия",
     sessionsFew: "сессии",
     sessionsMany: "сессий",
+    projectAll: "Все проекты",
+    groupOn: "Группы",
+    groupOff: "Список",
+    archived: "Архив",
+    showArchived: "Показать архив",
+    hideArchived: "Скрыть архив",
+    rename: "Переименовать",
+    archive: "В архив",
+    unarchive: "Восстановить",
+    openTui: "Открыть TUI",
+    noSessions: "Сессии не найдены",
+    commandPalette: "Палитра команд",
+    commandPlaceholder: "Введите команду…",
+    renamed: "Сессия переименована",
+    archivedToast: "Сессия в архиве",
+    restoredToast: "Сессия восстановлена",
     matchOne: "совпадение",
     matchMany: "совпадений",
     approvalOne: "подтверждение",
@@ -206,6 +252,18 @@ const baseName = (sid) => {
   const s = (snap?.sessions ?? []).find((x) => x.id === sid);
   return s ? baseDir(s.directory) || (s.title || "").slice(0, 14) || t("session") : t("session");
 };
+
+function projectName(directory) {
+  return baseDir(directory) || (lang === "ru" ? "Без проекта" : "No project");
+}
+
+function showToast(message) {
+  if (!toastEl) return;
+  toastEl.textContent = message;
+  toastEl.classList.add("show");
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => toastEl.classList.remove("show"), 1800);
+}
 
 function limitFor(s) {
   if (s.providerID && s.modelID) {
@@ -495,6 +553,8 @@ function render() {
   document.body.dataset.theme = snap.theme || "notch";
   lang = snap.lang === "ru" ? "ru" : "en";
   filterEl.placeholder = t("filterPh");
+  paletteEl.setAttribute("aria-label", t("commandPalette"));
+  paletteInput.placeholder = t("commandPlaceholder");
   pinBtn.title = t("pinTitle");
   muteBtn.title = t("muteTitle");
   closeBtn.title = t("closeTitle");
@@ -505,9 +565,18 @@ function render() {
   renderUpdate();
 
   const fq = filter.trim().toLowerCase();
-  const all = (snap.sessions ?? [])
+  const allProjects = [...new Set((snap.sessions ?? []).map((s) => s.directory).filter(Boolean))].sort((a, b) => projectName(a).localeCompare(projectName(b)));
+  projectTabs.innerHTML = [
+    `<button class="project-tab ${projectFilter === "*" ? "active" : ""}" data-project="*">${esc(t("projectAll"))}</button>`,
+    ...allProjects.slice(0, 5).map((p) => `<button class="project-tab ${projectFilter === p ? "active" : ""}" data-project="${esc(p)}" title="${esc(p)}">${esc(projectName(p))}</button>`),
+  ].join("");
+  const visibleSessions = (snap.sessions ?? []).filter((s) => showArchived || !s.archived);
+  groupBtn.textContent = grouped ? t("groupOn") : t("groupOff");
+  archiveBtn.textContent = showArchived ? t("hideArchived") : t("showArchived");
+  const all = visibleSessions
+    .filter((s) => projectFilter === "*" || s.directory === projectFilter)
     .filter((s) => !doneCards.some((c) => c.id === `${s.id}:${s.doneAt}`))
-    .filter((s) => s.status !== "idle" || (s.doneAt && now - s.doneAt < 45 * 60e3) || permed.has(s.id))
+    .filter((s) => s.status !== "idle" || showArchived || (s.doneAt && now - s.doneAt < 45 * 60e3) || permed.has(s.id))
     .filter(
       (s) =>
         !fq ||
@@ -519,8 +588,12 @@ function render() {
   function recency(s) {
     return Math.max(s.since ?? 0, s.doneAt ?? 0, s.updatedAt ?? 0);
   }
-  const maxRows = fq ? 30 : 7;
+  const maxRows = fq || showArchived ? 30 : 7;
   const active = all.slice(0, maxRows);
+  if (grouped) active.sort((a, b) => projectName(a.directory).localeCompare(projectName(b.directory)) || recency(b) - recency(a));
+  const projectHeadings = grouped
+    ? active.map((s, i) => i === 0 || projectName(s.directory) !== projectName(active[i - 1].directory) ? `<div class="project-heading">${esc(projectName(s.directory))}</div>` : "").join("")
+    : "";
 
   const focused = ["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement?.tagName);
   const expanded = !dismissed && (pinned || hover || perms.length > 0 || forms.length > 0 || focused || doneCards.length > 0);
@@ -571,7 +644,7 @@ function render() {
     .join("");
 
   /* session rows */
-  rowsEl.innerHTML = active
+  rowsEl.innerHTML = projectHeadings + active
     .map((s) => {
       const cls = statusClass(s, permed);
       const used = s.ctxUsed ?? 0;
@@ -594,6 +667,11 @@ function render() {
       return `
 <div class="row ${target === s.id ? "tg" : ""}" data-sid="${esc(s.id)}">
   <span class="sdot ${cls}"></span>
+  <div class="row-actions">
+    <button data-rename="${esc(s.id)}" title="${esc(t("rename"))}">✎</button>
+    <button data-open="${esc(s.id)}" title="${esc(t("openTui"))}">↗</button>
+    <button data-archive="${esc(s.id)}" title="${esc(s.archived ? t("unarchive") : t("archive"))}">${s.archived ? "↶" : "⌁"}</button>
+  </div>
   <div class="l1row">
     <div class="l1">
       <span class="stitle">${esc(s.title || t("untitled"))}</span>
@@ -622,6 +700,8 @@ function render() {
 </div>`;
     })
     .join("");
+
+  if (!active.length) rowsEl.innerHTML = `<div id="ifnote">${esc(t("noSessions"))}</div>`;
 
   /* forms */
   renderForms(forms);
@@ -735,7 +815,27 @@ muteBtn.addEventListener("click", () => {
   render();
 });
 document.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+    e.preventDefault();
+    paletteOpen = !paletteOpen;
+    paletteEl.classList.toggle("hidden", !paletteOpen);
+    if (paletteOpen) { paletteInput.focus(); renderPalette(); }
+    else paletteInput.blur();
+    return;
+  }
+  if ((e.key === "ArrowDown" || e.key === "ArrowUp") && !paletteOpen && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+    const rows = [...rowsEl.querySelectorAll(".row")];
+    if (rows.length) {
+      const i = Math.max(0, rows.findIndex((r) => r.dataset.sid === target));
+      const next = e.key === "ArrowDown" ? Math.min(rows.length - 1, i + 1) : Math.max(0, i - 1);
+      target = rows[next].dataset.sid;
+      render();
+      e.preventDefault();
+    }
+    return;
+  }
   if (e.key === "Escape") {
+    if (paletteOpen) { paletteOpen = false; paletteEl.classList.add("hidden"); return; }
     filterEl.value = "";
     filter = "";
     if (pinned) {
@@ -747,6 +847,41 @@ document.addEventListener("keydown", (e) => {
     render();
     requestAnimationFrame(measure);
   }
+});
+
+const paletteCommands = () => [
+  { label: grouped ? t("groupOff") : t("groupOn"), run: () => { grouped = !grouped; } },
+  { label: showArchived ? t("hideArchived") : t("showArchived"), run: () => { showArchived = !showArchived; } },
+  { label: pinned ? t("closeTitle") : t("pinTitle"), run: () => { pinned = !pinned; notch.pin(pinned); } },
+  { label: t("closeTitle"), run: () => { dismissed = true; pinned = false; notch.pin(false); } },
+];
+function filteredPaletteCommands() {
+  const q = paletteInput.value.trim().toLowerCase();
+  return paletteCommands().filter((x) => !q || x.label.toLowerCase().includes(q));
+}
+function renderPalette() {
+  const items = filteredPaletteCommands();
+  paletteIndex = Math.min(paletteIndex, Math.max(0, items.length - 1));
+  paletteItems.innerHTML = items.map((x, i) => `<button class="palette-item ${i === paletteIndex ? "active" : ""}" data-command="${i}">${esc(x.label)}<small>↵</small></button>`).join("");
+}
+paletteBtn?.addEventListener("click", () => { paletteOpen = true; paletteEl.classList.remove("hidden"); paletteInput.focus(); renderPalette(); });
+paletteClose?.addEventListener("click", () => { paletteOpen = false; paletteEl.classList.add("hidden"); });
+paletteInput?.addEventListener("input", () => { paletteIndex = 0; renderPalette(); });
+paletteInput?.addEventListener("keydown", (e) => {
+  const items = filteredPaletteCommands();
+  if (e.key === "ArrowDown") { e.preventDefault(); paletteIndex = Math.min(paletteIndex + 1, Math.max(0, items.length - 1)); renderPalette(); }
+  if (e.key === "ArrowUp") { e.preventDefault(); paletteIndex = Math.max(0, paletteIndex - 1); renderPalette(); }
+  if (e.key === "Enter") {
+    e.preventDefault();
+    const item = items[paletteIndex];
+    if (item) { item.run(); paletteOpen = false; paletteEl.classList.add("hidden"); render(); requestAnimationFrame(measure); }
+  }
+});
+paletteItems?.addEventListener("click", (e) => {
+  const item = e.target.closest("[data-command]");
+  if (!item) return;
+  const cmd = filteredPaletteCommands()[Number(item.dataset.command)];
+  cmd?.run(); paletteOpen = false; paletteEl.classList.add("hidden"); render(); requestAnimationFrame(measure);
 });
 
 /* form value tracking + conditional visibility re-render */
@@ -783,6 +918,50 @@ document.addEventListener("click", async (e) => {
   const upGet = e.target.closest("[data-uget]");
   if (upGet) {
     notch.openExternal(upGet.dataset.uget);
+    return;
+  }
+  const project = e.target.closest("[data-project]");
+  if (project) {
+    projectFilter = project.dataset.project;
+    render();
+    requestAnimationFrame(measure);
+    return;
+  }
+  const group = e.target.closest("#groupBtn");
+  if (group) {
+    grouped = !grouped;
+    render();
+    requestAnimationFrame(measure);
+    return;
+  }
+  const archiveView = e.target.closest("#archiveBtn");
+  if (archiveView) {
+    showArchived = !showArchived;
+    render();
+    requestAnimationFrame(measure);
+    return;
+  }
+  const rename = e.target.closest("[data-rename]");
+  if (rename) {
+    const session = (snap?.sessions ?? []).find((s) => s.id === rename.dataset.rename);
+    const title = window.prompt(t("rename"), session?.title || "");
+    if (title?.trim()) {
+      const res = await notch.updateSession(rename.dataset.rename, { title: title.trim() });
+      showToast(res?.ok ? t("renamed") : (res?.error || t("error")));
+    }
+    return;
+  }
+  const open = e.target.closest("[data-open]");
+  if (open) {
+    notch.openSession?.(open.dataset.open);
+    return;
+  }
+  const archive = e.target.closest("[data-archive]");
+  if (archive) {
+    const session = (snap?.sessions ?? []).find((s) => s.id === archive.dataset.archive);
+    const value = !session?.archived;
+    const res = await notch.updateSession(archive.dataset.archive, { archived: value });
+    showToast(res?.ok ? t(value ? "archivedToast" : "restoredToast") : (res?.error || t("error")));
     return;
   }
   const upLater = e.target.closest("[data-udismiss]");

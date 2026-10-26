@@ -1,7 +1,7 @@
 {
   "name": "opencode-notch",
   "productName": "OpenCode Notch",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A macOS-style notch for Windows that watches your OpenCode sessions — approvals, forms, live activity and context usage at the top of your screen.",
   "license": "MIT",
   "author": "fraches05",
