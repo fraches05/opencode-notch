@@ -111,7 +111,7 @@ No plugins, no hooks, no config files in your project. The notch talks to the lo
 
 ### Option A — installer (recommended)
 
-1. Open [**Releases**](../../releases/latest) and download `OpenCodeNotch-Setup-0.3.0.exe`.
+1. Open [**Releases**](../../releases/latest) and download `OpenCodeNotch-Setup-0.3.1.exe`.
 2. Run it. It installs for the current user only, so there is no UAC prompt, and it adds Start-menu and desktop shortcuts.
 3. **OpenCode Notch** starts right away — a black capsule appears at the top of your screen.
 

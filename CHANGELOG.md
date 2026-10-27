@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.1] — 2026-10-27
+
+### Fixed
+
+- **Expanded notch layout** — removed viewport-relative panel dimensions that caused Electron's dynamically sized window to cap the hover panel at a thin strip. The panel now measures at its intended 440 px width and resizes to its content again.
+
 ## [0.3.0] — 2026-10-26
 
 ### Global session center
