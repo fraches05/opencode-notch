@@ -18,5 +18,6 @@ contextBridge.exposeInMainWorld("notch", {
   notify: (v) => ipcRenderer.send("ui:notify", v),
   checkUpdate: () => ipcRenderer.invoke("update:check"),
   dismissUpdate: (v) => ipcRenderer.send("update:dismiss", v),
+  startOpenCode: () => ipcRenderer.invoke("opencode:start"),
   quit: () => ipcRenderer.send("app:quit"),
 });

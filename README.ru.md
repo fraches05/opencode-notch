@@ -4,14 +4,15 @@
 
 # OpenCode Notch
 
-**Notch в стиле macOS для Windows — для ваших сессий OpenCode.**
+**Отвечайте агенту с верхней кромки экрана — без alt-tab.**
 
-Подтверждения, формы, живая активность агента и расход контекста — всегда на виду, в верхней кромке экрана.
+Notch в стиле macOS для Windows: подтверждения OpenCode, формы, живая активность агента и расход контекста — всё в одном взгляде наверх.
 
 [![Платформа](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D4?style=flat-square)](#требования)
 [![OpenCode](https://img.shields.io/badge/OpenCode-2.x-111111?style=flat-square)](https://opencode.ai)
 [![Electron](https://img.shields.io/badge/Electron-45-47848F?style=flat-square)](https://www.electronjs.org)
 [![Лицензия](https://img.shields.io/badge/license-MIT-3DA639?style=flat-square)](LICENSE)
+[![CI](https://github.com/fraches05/opencode-notch/actions/workflows/ci.yml/badge.svg)](https://github.com/fraches05/opencode-notch/actions/workflows/ci.yml)
 [![Telegram](https://img.shields.io/badge/telegram-%40mrsdsxp-2AABEE?style=flat-square&logo=telegram&logoColor=white)](https://t.me/mrsdsxp)
 
 [Скачать](#установка) · [Сайт](https://fraches05.github.io/opencode-notch/) · [Возможности](#возможности) · [Как это работает](#как-это-работает) · [Если что-то не работает](#если-что-то-не-работает) · [Чат](https://t.me/mrsdsxp)
@@ -111,7 +112,7 @@ OpenCode Notch выносит ответ на верхнюю кромку экр
 
 ### Вариант А — установщик (рекомендую)
 
-1. Откройте [**Releases**](../../releases/latest) и скачайте `OpenCodeNotch-Setup-0.3.1.exe`.
+1. Откройте [**Releases**](../../releases/latest) и скачайте `OpenCodeNotch-Setup-0.3.2.exe`.
 2. Запустите его. Он ставится только для текущего пользователя, поэтому UAC не спрашивает, и добавляет ярлыки в меню «Пуск» и на рабочий стол.
 3. **OpenCode Notch** стартует сразу — в верхней части экрана появится чёрная капсула.
 
@@ -143,6 +144,8 @@ npm start
 - Windows 10 или 11
 - Установленный [OpenCode](https://opencode.ai) 2.x с доступным фоновым сервисом. Notch находит сервис так же, как это делает TUI — обычно настраивать ничего не нужно.
 - Ни плагинов, ни API-ключей, ни дополнительной конфигурации.
+
+Если notch не может достучаться до OpenCode, он пишет это прямо в панели — **OpenCode не запущен** или **OpenCode не установлен** — и предлагает нужное действие вместо пустого окна. Проверено на OpenCode `2.1.2`.
 
 ## Как пользоваться
 

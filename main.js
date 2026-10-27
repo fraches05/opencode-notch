@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain, Tray, Menu, screen, globalShortcut, shell,
 import path from "node:path";
 import fs from "node:fs";
 import os from "node:os";
-import { spawn } from "node:child_process";
+import { spawn, execFile } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { Service } from "@opencode/client/service";
 
@@ -43,6 +43,20 @@ const gj = async (p) => {
 
 /* ---------------- state ---------------- */
 const S = { connected: false, sessions: new Map(), permissions: new Map(), forms: new Map(), models: new Map() };
+
+/* Is the `opencode` CLI on PATH? Drives the first-run empty state. */
+let openCodeInstalled = null; // null = not checked yet
+function detectOpenCode(force = false) {
+  if (!force && openCodeInstalled !== null) return Promise.resolve(openCodeInstalled);
+  return new Promise((resolve) => {
+    execFile("where.exe", ["opencode"], { windowsHide: true }, (err, stdout) => {
+      const found = !err && String(stdout ?? "").trim().length > 0;
+      if (found !== openCodeInstalled) log("opencode cli:", found ? "found" : "not found");
+      openCodeInstalled = found;
+      resolve(found);
+    });
+  });
+}
 
 const sessDefault = (id) => ({
   id,
@@ -440,6 +454,7 @@ const send = () => {
     } catch {}
     win.webContents.send("state", {
       connected: S.connected,
+      openCodeInstalled: openCodeInstalled === true,
       ts: Date.now(),
       pinned,
       muted,
@@ -861,8 +876,10 @@ function ipcWire() {
     send();
     tray?.setContextMenu(buildTrayMenu());
   });
-  ipcMain.handle("app:ready", () => {    win?.webContents.send("state", {
+  ipcMain.handle("app:ready", () => {    detectOpenCode(true).then(() => send());
+    win?.webContents.send("state", {
       connected: S.connected,
+      openCodeInstalled: openCodeInstalled === true,
       ts: Date.now(),
       pinned,
       muted,
@@ -953,6 +970,23 @@ function ipcWire() {
       return { ok: true };
     } catch (err) {
       log("open session:", err?.message || String(err));
+      return { ok: false, error: String(err?.message || err) };
+    }
+  });
+  ipcMain.handle("opencode:start", () => {
+    try {
+      const dir = [...S.sessions.values()].map((s) => s.directory).find(Boolean) || os.homedir();
+      const child = spawn("cmd.exe", ["/d", "/s", "/c", `start "" opencode --dir "${dir.replaceAll('"', '""')}"`], {
+        detached: true,
+        windowsHide: true,
+        cwd: dir,
+        stdio: "ignore",
+      });
+      child.unref();
+      log("opencode: started by user request in", dir);
+      return { ok: true };
+    } catch (err) {
+      log("opencode start:", err?.message || String(err));
       return { ok: false, error: String(err?.message || err) };
     }
   });

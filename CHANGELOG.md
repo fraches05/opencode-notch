@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.2] — 2026-10-28
+
+### Added
+
+- **First-run guidance** — when OpenCode is not running or not installed, the notch now says so and offers a matching action (start OpenCode, install it, or re-check) instead of showing an empty panel with "reconnecting…".
+- **Demo video** — a 10-second `demo.mp4` shows live sessions, approvals, forms and the command palette; the website now plays it in the hero.
+- **CI workflow** — every push checks JavaScript syntax and verifies that all local assets referenced by the READMEs and website exist.
+- **winget manifest** — `winget install Fraches.OpenCodeNotch` is submitted to the community repository.
+
+### Changed
+
+- **Positioning** — headline and README now lead with the outcome ("Answer your agent from the top of your screen") instead of the notch metaphor. Requirements state the tested OpenCode version.
+
 ## [0.3.1] — 2026-10-27
 
 ### Fixed

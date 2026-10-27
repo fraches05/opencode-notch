@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Syntax check
+        run: |
+          node --check main.js
+          node --check preload.cjs
+          node --check renderer/app.js
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Local assets referenced by the docs and READMEs exist
+        shell: pwsh
+        run: |
+          $files = @('README.md', 'README.ru.md', 'docs/index.html')
+          $missing = @()
+          foreach ($file in $files) {
+            $dir = Split-Path $file -Parent
+            if ([string]::IsNullOrWhiteSpace($dir)) { $dir = '.' }
+            $text = Get-Content $file -Raw
+            foreach ($m in [regex]::Matches($text, '(?:src|href)="(?!#|https?:|mailto:)([^"]+)"')) {
+              $rel = $m.Groups[1].Value
+              $path = Join-Path $dir $rel
+              if (-not (Test-Path $path)) { $missing += "$file -> $rel" }
+            }
+          }
+          if ($missing.Count -gt 0) {
+            $missing | ForEach-Object { Write-Host "::error::missing asset $_" }
+            exit 1
+          }
+          Write-Host "all local assets present"

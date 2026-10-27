@@ -75,6 +75,7 @@ const STR = {
     approvals: "{n} approval{s} needed",
     forms: "{n} form{s}",    idle: "idle",
     reconnecting: "reconnecting…",
+    waiting: "waiting for OpenCode…",
     permission: "Permission",
     allowOnce: "Allow once",
     always: "Always",
@@ -123,6 +124,18 @@ const STR = {
     approvalMany: "approvals",
     formOne: "form",
     formMany: "forms",
+    notRunningTitle: "OpenCode isn't running",
+    notRunningText: "The notch is a front-end for the local OpenCode service. Start it and this panel fills in by itself.",
+    notInstalledTitle: "OpenCode isn't installed",
+    notInstalledText: "The notch has nothing to show until OpenCode is installed. Install the CLI, run it inside a project folder, and the notch connects on its own.",
+    noSessionsTitle: "Connected — no sessions yet",
+    noSessionsText: "Run opencode in a project folder. New sessions appear here within a second.",
+    startOpenCode: "Start OpenCode",
+    installOpenCode: "Install OpenCode",
+    checkAgain: "Check again",
+    checking: "checking…",
+    starting: "starting…",
+    startFailed: "couldn't start",
   },
   ru: {
     session: "сессия",
@@ -144,6 +157,7 @@ const STR = {
     forms: "{form}: {n}",
     idle: "простой",
     reconnecting: "переподключение…",
+    waiting: "жду OpenCode…",
     permission: "Разрешение",
     allowOnce: "Разрешить",
     always: "Всегда",
@@ -194,6 +208,18 @@ const STR = {
     formOne: "форма",
     formFew: "формы",
     formMany: "форм",
+    notRunningTitle: "OpenCode не запущен",
+    notRunningText: "Нотч показывает локальный сервис OpenCode. Запустите его — панель наполнится сама.",
+    notInstalledTitle: "OpenCode не установлен",
+    notInstalledText: "Нотчу нечего показывать, пока нет OpenCode. Поставьте CLI, запустите его в папке проекта — нотч подключится сам.",
+    noSessionsTitle: "Подключено — сессий пока нет",
+    noSessionsText: "Запустите opencode в папке проекта. Новые сессии появятся здесь через секунду.",
+    startOpenCode: "Запустить OpenCode",
+    installOpenCode: "Установить OpenCode",
+    checkAgain: "Проверить снова",
+    checking: "проверяю…",
+    starting: "запускаю…",
+    startFailed: "не удалось запустить",
   },
 };
 
@@ -613,7 +639,7 @@ function render() {
       ]
         .filter(Boolean)
         .join(" · ") || t("idle")
-    : t("reconnecting");
+    : t("waiting");
   pinBtn.classList.toggle("on", pinned);
   muteBtn.classList.toggle("off", muted);
 
@@ -701,7 +727,26 @@ function render() {
     })
     .join("");
 
-  if (!active.length) rowsEl.innerHTML = `<div id="ifnote">${esc(t("noSessions"))}</div>`;
+  if (!active.length) {
+    if (fq) {
+      rowsEl.innerHTML = `<div id="ifnote">${esc(t("noSessions"))}</div>`;
+    } else if (!snap.connected) {
+      const installed = !!snap.openCodeInstalled;
+      rowsEl.innerHTML = `<div class="empty">
+  <div class="etitle">${esc(t(installed ? "notRunningTitle" : "notInstalledTitle"))}</div>
+  <div class="etext">${esc(t(installed ? "notRunningText" : "notInstalledText"))}</div>
+  <div class="ebtns">
+    <button class="b1" data-empty="${installed ? "start" : "install"}">${esc(t(installed ? "startOpenCode" : "installOpenCode"))}</button>
+    <button class="b2" data-empty="recheck">${esc(t("checkAgain"))}</button>
+  </div>
+</div>`;
+    } else {
+      rowsEl.innerHTML = `<div class="empty">
+  <div class="etitle">${esc(t("noSessionsTitle"))}</div>
+  <div class="etext">${esc(t("noSessionsText"))}</div>
+</div>`;
+    }
+  }
 
   /* forms */
   renderForms(forms);
@@ -1011,6 +1056,34 @@ document.addEventListener("click", async (e) => {
   if (fcancel) {
     fcancel.disabled = true;
     await notch.formCancel(fcancel.dataset.fsid, fcancel.dataset.fcancel);
+    return;
+  }
+  const emptyBtn = e.target.closest("[data-empty]");
+  if (emptyBtn) {
+    const kind = emptyBtn.dataset.empty;
+    const original = emptyBtn.textContent;
+    if (kind === "install") {
+      notch.openExternal("https://opencode.ai");
+      return;
+    }
+    if (kind === "recheck") {
+      emptyBtn.disabled = true;
+      emptyBtn.textContent = t("checking");
+      await notch.ready?.();
+      setTimeout(() => {
+        emptyBtn.disabled = false;
+        emptyBtn.textContent = original;
+      }, 1500);
+      return;
+    }
+    emptyBtn.disabled = true;
+    emptyBtn.textContent = t("starting");
+    const res = await notch.startOpenCode?.();
+    if (!res?.ok) emptyBtn.textContent = t("startFailed");
+    setTimeout(() => {
+      emptyBtn.disabled = false;
+      emptyBtn.textContent = original;
+    }, 2500);
     return;
   }
   const actBtn = e.target.closest("[data-act]");

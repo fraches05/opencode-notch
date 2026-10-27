@@ -64,7 +64,7 @@
   .btn.primary { background: linear-gradient(180deg, #8fdcff, #5cc4f4); color: #04222f; border-color: transparent; }
   .btn.primary:hover { filter: brightness(1.06); }
   .hero-shot { position: relative; z-index: 2; margin: 46px auto 0; width: min(470px, 92%); }
-  .hero-shot img { width: 100%; border-radius: 14px; box-shadow: 0 40px 90px rgba(0,0,0,.65); border: 1px solid var(--line); }
+  .hero-shot img, .hero-shot video { width: 100%; border-radius: 14px; box-shadow: 0 40px 90px rgba(0,0,0,.65); border: 1px solid var(--line); display: block; }
 
   section { padding: 62px 0; border-bottom: 1px solid var(--line); }
   section h2 { font-size: 28px; letter-spacing: -.6px; margin: 0 0 10px; }
@@ -124,10 +124,10 @@
     </nav>
     <div class="top">
       <img class="icon" src="icon.png" alt="OpenCode Notch" />
-      <h1 data-en>Your agents live in the notch.</h1>
-      <h1 data-ru>Твои агенты живут в notch.</h1>
-      <p class="sub" data-en>A macOS-style notch for Windows that watches every OpenCode session — approvals, forms, live tool activity and context usage, always one glance away.</p>
-      <p class="sub" data-ru>Notch в стиле macOS для Windows: следит за сессиями OpenCode — подтверждения, формы, живая активность инструментов и расход контекста всегда на виду.</p>
+      <h1 data-en>Approve your agent without leaving your work.</h1>
+      <h1 data-ru>Подтверждайте агента, не выходя из работы.</h1>
+      <p class="sub" data-en>OpenCode Notch is a macOS-style notch for Windows. It watches every OpenCode session — approvals, forms, live tool activity and context usage — and hands you the answer at the top edge of the screen.</p>
+      <p class="sub" data-ru>OpenCode Notch — notch в стиле macOS для Windows. Следит за сессиями OpenCode: подтверждения, формы, живая активность инструментов и расход контекста — всё в верхней кромке экрана.</p>
       <div class="cta">
         <a class="btn primary" href="https://github.com/fraches05/opencode-notch/releases/latest">
           <span data-en>Download for Windows</span><span data-ru>Скачать для Windows</span>
@@ -135,9 +135,9 @@
         <a class="btn" href="https://github.com/fraches05/opencode-notch">★ <span data-en>Star on GitHub</span><span data-ru>Звезда на GitHub</span></a>
         <a class="btn" href="https://t.me/mrsdsxp">✈ Telegram</a>
       </div>
-      <p class="ver"><b>v0.3.1</b> · <span data-en>session center, projects, command palette, installer</span><span data-ru>центр сессий, проекты, палитра команд, установщик</span></p>
+      <p class="ver"><b>v0.3.2</b> · <span data-en>session center, projects, command palette, installer</span><span data-ru>центр сессий, проекты, палитра команд, установщик</span></p>
       <div class="hero-shot">
-        <img src="demo.gif" alt="Panel expanding from the notch" />
+        <video src="demo.mp4" poster="screenshots/panel.png" autoplay loop muted playsinline aria-label="OpenCode Notch demo"></video>
       </div>
     </div>
   </div>
@@ -192,9 +192,10 @@
     <h2 data-en>Install</h2>
     <h2 data-ru>Установка</h2>
     <ol class="steps">
-      <li><b data-en>Download the installer</b><b data-ru>Скачайте установщик</b><br /><span data-en><code>OpenCodeNotch-Setup-0.3.1.exe</code> from the <a href="https://github.com/fraches05/opencode-notch/releases">Releases page</a>.</span><span data-ru><code>OpenCodeNotch-Setup-0.3.1.exe</code> со страницы <a href="https://github.com/fraches05/opencode-notch/releases">Releases</a>.</span></li>
+      <li><b data-en>Download the installer</b><b data-ru>Скачайте установщик</b><br /><span data-en><code>OpenCodeNotch-Setup-0.3.2.exe</code> from the <a href="https://github.com/fraches05/opencode-notch/releases">Releases page</a>.</span><span data-ru><code>OpenCodeNotch-Setup-0.3.2.exe</code> со страницы <a href="https://github.com/fraches05/opencode-notch/releases">Releases</a>.</span></li>
       <li><b data-en>Run it</b><b data-ru>Запустите его</b><br /><span data-en>Installs for your user only — no admin prompt — and adds Start-menu and desktop shortcuts.</span><span data-ru>Ставится только для вашего пользователя — без прав администратора — и добавляет ярлыки в «Пуск» и на рабочий стол.</span></li>
-      <li><b data-en>Hover the capsule</b><b data-ru>Наведите на капсулу</b><br /><span data-en>The black capsule appears at the top of your screen. Prefer portable? Grab the zip instead and unzip anywhere.</span><span data-ru>Чёрная капсула появится сверху экрана. Нужен портативный вариант — берите zip и распакуйте куда угодно.</span></li>
+      <li><b data-en>Hover the capsule</b><b data-ru>Наведите на капсулу</b><br /><span data-en>The black capsule appears at the top of your screen. If OpenCode is closed, the panel offers to start it. Prefer portable? Grab the zip instead and unzip anywhere.</span><span data-ru>Чёрная капсула появится сверху экрана. Если OpenCode закрыт, панель предложит его запустить. Нужен портативный вариант — берите zip и распакуйте куда угодно.</span></li>
+      <li><b data-en>Or use winget</b><b data-ru>Или через winget</b><br /><span data-en><code>winget install Fraches.OpenCodeNotch</code> — same build, updates through winget.</span><span data-ru><code>winget install Fraches.OpenCodeNotch</code> — та же сборка, обновления через winget.</span></li>
     </ol>
     <div class="note" data-en>Windows may warn that the app is unsigned: click <b>More info → Run anyway</b>. Build it yourself with <code>npm start</code> if you prefer.</div>
     <div class="note" data-ru>Windows может предупредить, что приложение без подписи: нажмите <b>Подробнее → Выполнить в любом случае</b>. Можно собрать самому через <code>npm start</code>.</div>

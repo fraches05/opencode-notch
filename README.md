@@ -4,14 +4,15 @@
 
 # OpenCode Notch
 
-**A macOS-style notch for Windows — for your OpenCode sessions.**
+**Answer your agent from the top of your screen — no alt-tabbing.**
 
-Approvals, forms, live agent activity and context usage, always one glance away at the top of your screen.
+A macOS-style notch for Windows that turns OpenCode's approval prompts, forms, live agent activity and context usage into one glance at the top edge of your screen.
 
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D4?style=flat-square)](#requirements)
 [![OpenCode](https://img.shields.io/badge/OpenCode-2.x-111111?style=flat-square)](https://opencode.ai)
 [![Electron](https://img.shields.io/badge/Electron-45-47848F?style=flat-square)](https://www.electronjs.org)
 [![License](https://img.shields.io/badge/license-MIT-3DA639?style=flat-square)](LICENSE)
+[![CI](https://github.com/fraches05/opencode-notch/actions/workflows/ci.yml/badge.svg)](https://github.com/fraches05/opencode-notch/actions/workflows/ci.yml)
 [![Telegram](https://img.shields.io/badge/telegram-%40mrsdsxp-2AABEE?style=flat-square&logo=telegram&logoColor=white)](https://t.me/mrsdsxp)
 
 [Download](#install) · [Website](https://fraches05.github.io/opencode-notch/) · [Features](#features) · [How it works](#how-it-works) · [Troubleshooting](#troubleshooting) · [Chat](https://t.me/mrsdsxp)
@@ -23,6 +24,8 @@ Approvals, forms, live agent activity and context usage, always one glance away 
 <p align="center">
   <img src="docs/demo.gif" width="470" alt="OpenCode Notch — collapsing pill, expanding panel, approval request" />
 </p>
+
+<p align="center"><a href="docs/demo.mp4">▶ 10-second demo (mp4)</a></p>
 
 ---
 
@@ -111,7 +114,7 @@ No plugins, no hooks, no config files in your project. The notch talks to the lo
 
 ### Option A — installer (recommended)
 
-1. Open [**Releases**](../../releases/latest) and download `OpenCodeNotch-Setup-0.3.1.exe`.
+1. Open [**Releases**](../../releases/latest) and download `OpenCodeNotch-Setup-0.3.2.exe`.
 2. Run it. It installs for the current user only, so there is no UAC prompt, and it adds Start-menu and desktop shortcuts.
 3. **OpenCode Notch** starts right away — a black capsule appears at the top of your screen.
 
@@ -143,6 +146,8 @@ Or just double-click **`start-notch.cmd`** — it installs dependencies on first
 - Windows 10 or 11
 - [OpenCode](https://opencode.ai) 2.x installed, with its background service available. The notch discovers the service the same way the TUI does — usually nothing to configure.
 - No plugin, no API key, no extra configuration.
+
+If the notch cannot reach OpenCode, it says so directly in the panel — **OpenCode isn't running** or **OpenCode isn't installed** — and offers the matching action instead of showing an empty box. Tested against OpenCode `2.1.2`.
 
 ## Using it
 
