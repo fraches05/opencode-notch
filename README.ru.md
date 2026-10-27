@@ -244,6 +244,17 @@ Issues и pull requests приветствуются. Если OpenCode изме
 
 Если оно сэкономило вам пару переключений окон — ⭐ помогает другим его найти.
 
+## Политика подписи кода
+
+Бесплатная подпись кода предоставляется [SignPath.io](https://signpath.io/), сертификат — [SignPath Foundation](https://signpath.org/).
+
+- Коммиттеры и ревьюеры: [fraches05](https://github.com/fraches05)
+- Утверждающие подпись: [fraches05](https://github.com/fraches05)
+
+Программа не передаёт информацию другим сетевым системам, если этого явно не запросил пользователь или человек, устанавливающий или запускающий её. OpenCode Notch обращается только к сервису OpenCode на этой же машине и к GitHub при проверке обновлений.
+
+Установщики для Windows собираются из исходников этого репозитория через `electron-builder` в [release workflow](.github/workflows/release.yml). Полная политика, включая заявление о приватности, — на [сайте](https://fraches05.github.io/opencode-notch/code-signing.html).
+
 ## Лицензия
 
 [MIT](LICENSE)

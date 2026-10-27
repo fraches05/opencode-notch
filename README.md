@@ -246,6 +246,17 @@ This is an independent, unofficial project. It is not affiliated with, endorsed 
 
 If it saves you a few alt-tabs, a ⭐ helps other people find it.
 
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
+
+- Committers and reviewers: [fraches05](https://github.com/fraches05)
+- Approvers: [fraches05](https://github.com/fraches05)
+
+This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. OpenCode Notch talks only to the OpenCode service already running on the same machine, and to GitHub when it checks for updates.
+
+Windows installers are built from this repository's source with `electron-builder` in the [release workflow](.github/workflows/release.yml). The full policy, including the privacy statement, lives on the [website](https://fraches05.github.io/opencode-notch/code-signing.html).
+
 ## License
 
 [MIT](LICENSE)

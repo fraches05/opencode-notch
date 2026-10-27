@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Code signing policy — OpenCode Notch</title>
+<meta name="description" content="How OpenCode Notch releases are signed: free code signing provided by SignPath.io, certificate by SignPath Foundation, with team roles, privacy statement and build details." />
+<link rel="icon" href="icon.png" />
+<style>
+  :root {
+    --bg: #07080c;
+    --panel: #0d1018;
+    --line: rgba(255,255,255,.08);
+    --text: #e7ecf5;
+    --dim: #93a1b6;
+    --busy: #7dd3fc;
+    --mint: #34d399;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.65;
+  }
+  a { color: var(--busy); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 0 24px; }
+  header {
+    background: radial-gradient(90% 130% at 50% -30%, #1c2740 0%, #0e1320 45%, #07080c 100%);
+    border-bottom: 1px solid var(--line);
+    padding: 26px 0 44px;
+  }
+  nav { display: flex; align-items: center; gap: 16px; font-size: 14px; }
+  nav .sp { margin-left: auto; }
+  nav img { width: 30px; border-radius: 8px; vertical-align: middle; }
+  h1 { font-size: clamp(28px, 4.4vw, 42px); letter-spacing: -1px; line-height: 1.15; margin: 28px 0 0; }
+  .sub { color: var(--dim); margin: 12px 0 0; max-width: 660px; }
+  main { padding: 46px 0 64px; }
+  section { padding: 26px 0; border-bottom: 1px solid var(--line); }
+  section:last-of-type { border-bottom: 0; }
+  h2 { font-size: 21px; letter-spacing: -.3px; margin: 0 0 12px; }
+  p, li { color: #cfd8e6; }
+  ul { padding-left: 22px; }
+  li { margin: 6px 0; }
+  code {
+    background: rgba(255,255,255,.06); border: 1px solid var(--line);
+    border-radius: 6px; padding: 1px 6px; font-size: 13px;
+  }
+  .note {
+    background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--mint);
+    border-radius: 10px; padding: 14px 16px; margin: 18px 0 0; color: #dbe6f2;
+  }
+  dl { margin: 0; }
+  dt { font-weight: 600; margin-top: 12px; }
+  dd { margin: 2px 0 0; color: #cfd8e6; }
+  footer { border-top: 1px solid var(--line); padding: 26px 0; color: var(--dim); font-size: 14px; }
+  footer a { color: var(--dim); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <nav>
+      <a href="./"><img src="icon.png" alt="" />OpenCode Notch</a>
+      <span class="sp"></span>
+      <a href="index.html#install">Install</a>
+      <a href="https://github.com/fraches05/opencode-notch">GitHub</a>
+    </nav>
+    <h1>Code signing policy</h1>
+    <p class="sub">How the Windows releases of OpenCode Notch are built and signed, who is responsible for them, and what data the app touches.</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section>
+    <h2>Code signing policy</h2>
+    <p><strong>Free code signing provided by <a href="https://signpath.io/">SignPath.io</a>, certificate by <a href="https://signpath.org/">SignPath Foundation</a>.</strong></p>
+    <p>Release installers and executables are signed through SignPath.io. The certificate is issued to SignPath Foundation, which acts as the publisher of this open-source project and may revoke access if these rules are violated.</p>
+    <p>The project accepts the SignPath Foundation conditions for Open Source projects: MIT-licensed code only, no proprietary components in signed packages, no malware, and manually approved signing requests for every release.</p>
+  </section>
+
+  <section>
+    <h2>Team roles</h2>
+    <dl>
+      <dt>Committers and reviewers</dt>
+      <dd><a href="https://github.com/fraches05">fraches05</a> — owns the repository, writes and reviews all changes. External pull requests are reviewed before merging.</dd>
+      <dt>Approvers</dt>
+      <dd><a href="https://github.com/fraches05">fraches05</a> — approves each signing request for a release.</dd>
+    </dl>
+    <p>Multi-factor authentication is enabled on both the GitHub account and the SignPath account.</p>
+  </section>
+
+  <section>
+    <h2>What gets signed</h2>
+    <ul>
+      <li><code>OpenCodeNotch-Setup-&lt;version&gt;.exe</code> — the per-user NSIS installer.</li>
+      <li>The application executable inside the installer and the portable ZIP.</li>
+    </ul>
+    <p>Only binaries built from this repository's source are signed. Third-party components bundled by Electron are included unmodified; they are not signed with this project's certificate.</p>
+  </section>
+
+  <section>
+    <h2>Build and reproducibility</h2>
+    <p>Installers are produced from source with <code>electron-builder</code> in the project's <a href="https://github.com/fraches05/opencode-notch/blob/main/.github/workflows/release.yml">release workflow</a> for Windows x64. Each release is built from a tagged commit, so a signature can be traced back to the exact source and build scripts in the repository.</p>
+    <p>Checksums for every artifact are published in the release notes, so you can verify a download independently of the signature.</p>
+  </section>
+
+  <section id="privacy">
+    <h2>Privacy policy</h2>
+    <p>This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it.</p>
+    <ul>
+      <li>OpenCode Notch connects only to the OpenCode service running on the same machine, over its local HTTP API.</li>
+      <li>It contacts GitHub only to check whether a newer release exists; no session content, prompts or file paths are sent.</li>
+      <li>Preferences (window position, theme, language, mute) are stored locally in <code>%APPDATA%\OpenCode Notch\notch.json</code> and are never uploaded.</li>
+      <li>No telemetry, analytics or crash reporting is included.</li>
+      <li>Uninstalling removes the application; the preferences file is kept unless you delete it yourself.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Verifying a download</h2>
+    <p>Every release lists SHA256 hashes for the installer and the portable ZIP:</p>
+    <p><code>Get-FileHash .\OpenCodeNotch-Setup-&lt;version&gt;.exe -Algorithm SHA256</code></p>
+    <p>If Windows still shows an unknown publisher, the build was downloaded before signing was enabled or the file was modified — compare the hash with the release notes before running it.</p>
+    <div class="note">Until signing is active, the installer is unsigned and Windows SmartScreen will ask for confirmation: choose <b>More info → Run anyway</b>.</div>
+  </section>
+
+  <section>
+    <h2>Reporting a problem</h2>
+    <p>If you believe a signed OpenCode Notch artifact violates this policy, open an issue at <a href="https://github.com/fraches05/opencode-notch/issues">github.com/fraches05/opencode-notch/issues</a> or report it to <a href="mailto:support@signpath.io">support@signpath.io</a> with the artifact name and evidence.</p>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <a href="./">OpenCode Notch</a> · <a href="https://github.com/fraches05/opencode-notch">GitHub</a> · <a href="https://github.com/fraches05/opencode-notch/releases">Releases</a> · MIT
+  </div>
+</footer>
+
+</body>
+</html>
