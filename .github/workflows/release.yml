@@ -23,7 +23,7 @@ jobs:
         run: npm ci
 
       - name: Build Windows installer
-        run: npm run make
+        run: npm run make -- --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
